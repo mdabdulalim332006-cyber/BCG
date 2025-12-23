@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bangla Choti golpo</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Telegram SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Monetag SDK -->
+    <script src='//libtl.com/sdk.js' data-zone='10366901' data-sdk='show_10366901'></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+        body { font-family: 'Poppins', sans-serif; transition: background-color 0.3s; }
+        .hidden { display: none !important; }
+        .active-tab { color: #3b82f6; border-top: 2px solid #3b82f6; }
+        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); }
+        .night-mode { background-color: #1a202c !important; color: #e2e8f0 !important; }
+        .night-mode .card { background-color: #2d3748 !important; color: white; }
+        .night-mode input, .night-mode textarea, .night-mode select { background: #2d3748; color: white; border-color: #4a5568; }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 overflow-x-hidden">
+
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-32 h-32 bg-blue-600 rounded-3xl mb-6 flex items-center justify-center shadow-xl">
+            <span class="text-white text-5xl font-bold">S</span>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800">StoryTime</h1>
+        <p class="text-gray-500 mt-2 mb-8">Unlock a world of imagination and wonder.</p>
+        <button onclick="startApp()" class="bg-blue-600 text-white px-10 py-4 rounded-full font-semibold shadow-lg hover:bg-blue-700 transition w-full max-w-xs">
+            Start Reading
+        </button>
+    </div>
+
+    <!-- Global Notification Banner -->
+    <div id="global-banner" class="hidden bg-yellow-400 text-yellow-900 text-xs font-bold py-2 px-4 text-center sticky top-0 z-40"></div>
+
+    <!-- Navigation Top Bar -->
+    <nav class="bg-white shadow-sm px-4 py-3 flex justify-between items-center sticky top-0 z-30 night-aware">
+        <span class="font-bold text-xl text-blue-600">StoryTime</span>
+        <div id="admin-access-btn" class="hidden">
+            <button onclick="showScreen('admin-panel')" class="bg-red-500 text-white text-xs px-3 py-1 rounded-md font-bold">ADMIN</button>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="pb-24 pt-4 px-4 max-w-2xl mx-auto">
+        
+        <!-- Home Screen -->
+        <section id="home-screen">
+            <div class="mb-6">
+                <input type="text" id="search-input" oninput="filterStories()" placeholder="Search stories..." class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                <div class="flex gap-2 mt-3 overflow-x-auto pb-2" id="category-filters">
+                    <button onclick="filterByCategory('All')" class="whitespace-nowrap px-4 py-1 rounded-full bg-blue-100 text-blue-600 text-sm font-medium">All</button>
+                    <!-- Categories will be injected here -->
+                </div>
+            </div>
+            <div id="stories-list" class="grid gap-4">
+                <!-- Stories will load here -->
+                <div class="animate-pulse flex flex-col gap-4">
+                    <div class="h-40 bg-gray-200 rounded-xl"></div>
+                    <div class="h-40 bg-gray-200 rounded-xl"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reading Screen -->
+        <section id="reading-screen" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <button onclick="showScreen('home-screen')" class="text-blue-600 font-medium flex items-center">
+                    ← Back
+                </button>
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleNightMode()" class="p-2 bg-gray-100 rounded-full night-aware-btn">🌙</button>
+                    <button onclick="changeFontSize(-1)" class="p-2 bg-gray-100 rounded-full night-aware-btn">A-</button>
+                    <button onclick="changeFontSize(1)" class="p-2 bg-gray-100 rounded-full night-aware-btn">A+</button>
+                    <button onclick="shareStory()" class="p-2 bg-blue-100 text-blue-600 rounded-full">Share</button>
+                </div>
+            </div>
+            <article id="story-viewer" class="prose max-w-none">
+                <h1 id="read-title" class="text-2xl font-bold mb-2"></h1>
+                <p id="read-meta" class="text-sm text-gray-500 mb-6 italic"></p>
+                <div id="read-content" class="leading-relaxed text-lg whitespace-pre-wrap"></div>
+            </article>
+        </section>
+
+        <!-- Favorites Screen -->
+        <section id="favorites-screen" class="hidden">
+            <h2 class="text-2xl font-bold mb-4">Your Favorites</h2>
+            <div id="fav-list" class="grid gap-4"></div>
+        </section>
+
+        <!-- Admin Panel -->
+        <section id="admin-panel" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-red-600">Admin Dashboard</h2>
+                <button onclick="showScreen('home-screen')" class="text-gray-500">Close</button>
+            </div>
+            
+            <!-- App Controls -->
+            <div class="bg-gray-100 p-4 rounded-xl mb-8">
+                <h3 class="font-bold mb-3">Global App Controls</h3>
+                <div class="grid gap-3">
+                    <input type="text" id="setting-direct-link" placeholder="Monetag Direct Link" class="p-2 rounded border w-full">
+                    <input type="text" id="setting-banner" placeholder="Global Banner Message" class="p-2 rounded border w-full">
+                    <button onclick="saveAppSettings()" class="bg-black text-white p-2 rounded">Update App Settings</button>
+                </div>
+            </div>
+
+            <!-- Story Form -->
+            <form id="story-form" class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h3 class="font-bold mb-3" id="form-mode">Add New Story</h3>
+                <input type="hidden" id="edit-id">
+                <div class="grid gap-3">
+                    <input type="text" id="story-title" placeholder="Title" class="p-2 rounded border w-full" required>
+                    <input type="text" id="story-author" placeholder="Author" class="p-2 rounded border w-full" required>
+                    <input type="text" id="story-category" placeholder="Category (e.g. Horror, Romance)" class="p-2 rounded border w-full" required>
+                    <textarea id="story-summary" placeholder="Short Summary" class="p-2 rounded border w-full" rows="2" required></textarea>
+                    <textarea id="story-content" placeholder="Full Story Content" class="p-2 rounded border w-full" rows="6" required></textarea>
+                    <select id="story-status" class="p-2 rounded border w-full">
+                        <option value="Published">Published</option>
+                        <option value="Draft">Draft</option>
+                    </select>
+                    <button type="submit" class="bg-blue-600 text-white p-3 rounded-lg font-bold">Save Story</button>
+                </div>
+            </form>
+
+            <div class="mt-8">
+                <h3 class="font-bold mb-4">Manage Stories</h3>
+                <div id="admin-story-list" class="grid gap-2 text-sm"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <div id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center py-3 z-30 night-aware">
+        <button onclick="showScreen('home-screen')" class="flex flex-col items-center gap-1 nav-item" id="nav-home">
+            <span class="text-xl">🏠</span>
+            <span class="text-[10px] uppercase font-bold">Home</span>
+        </button>
+        <button onclick="showScreen('favorites-screen')" class="flex flex-col items-center gap-1 nav-item" id="nav-fav">
+            <span class="text-xl">❤️</span>
+            <span class="text-[10px] uppercase font-bold">Saved</span>
+        </button>
+    </div>
+
+    <script>
+        // 1. CONFIGURATION & INITIALIZATION
+        const ADMIN_ID = "7554598607";
+        const firebaseConfig = {
+            apiKey: "AIzaSyA4gqOdRYydzPOR7a8brxBy2Bs49MtVqJw",
+            authDomain: "bangla-f8386.firebaseapp.com",
+            databaseURL: "https://bangla-f8386-default-rtdb.firebaseio.com",
+            projectId: "bangla-f8386",
+            storageBucket: "bangla-f8386.firebasestorage.app",
+            messagingSenderId: "213257434534",
+            appId: "1:213257434534:web:3748a963d1f4e299e64b67",
+            measurementId: "G-Y8L3VZLLLD"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let stories = [];
+        let favorites = JSON.parse(localStorage.getItem('fav_stories') || '[]');
+        let currentFontSize = 18;
+        let appConfig = {
+            directLink: "https://otieu.com/4/10189186",
+            banner: ""
+        };
+
+        // 2. AUTHENTICATION & SECURITY
+        function checkAdmin() {
+            const user = tg.initDataUnsafe?.user;
+            const userId = user ? user.id.toString() : "0";
+            
+            if (userId === ADMIN_ID) {
+                document.getElementById('admin-access-btn').classList.remove('hidden');
+            } else {
+                // Strict DOM removal for security
+                const adminEl = document.getElementById('admin-panel');
+                if (adminEl) adminEl.remove();
+            }
+        }
+
+        // 3. NAVIGATION & SCREENS
+        function showScreen(screenId) {
+            // Trigger Ad when changing categories or pages
+            if(screenId !== 'admin-panel') triggerInAppAd();
+
+            document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+            
+            // UI Updates
+            window.scrollTo(0,0);
+        }
+
+        function startApp() {
+            window.open(appConfig.directLink, '_blank');
+            document.getElementById('splash-screen').classList.add('hidden');
+            loadData();
+        }
+
+        // 4. DATA FETCHING
+        async function loadData() {
+            // Load App Settings
+            const settingsDoc = await db.collection('settings').doc('appConfig').get();
+            if (settingsDoc.exists) {
+                appConfig = settingsDoc.data();
+                if(appConfig.banner) {
+                    const banner = document.getElementById('global-banner');
+                    banner.innerText = appConfig.banner;
+                    banner.classList.remove('hidden');
+                }
+            }
+
+            // Load Stories
+            db.collection('stories').onSnapshot(snapshot => {
+                stories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderStories(stories);
+                renderCategories();
+                if(document.getElementById('admin-panel')) renderAdminList();
+            });
+        }
+
+        // 5. USER PANEL FUNCTIONS
+        function renderStories(data) {
+            const list = document.getElementById('stories-list');
+            list.innerHTML = data.filter(s => s.status === 'Published').map(story => `
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 card flex flex-col gap-2 relative transition transform active:scale-95" onclick="openStory('${story.id}')">
+                    <span class="text-[10px] font-bold text-blue-500 uppercase tracking-widest">${story.category}</span>
+                    <h3 class="font-bold text-lg">${story.title}</h3>
+                    <p class="text-gray-500 text-sm line-clamp-2">${story.summary}</p>
+                    <div class="flex justify-between items-center mt-2">
+                        <span class="text-xs text-gray-400">By ${story.author}</span>
+                        <button onclick="toggleFavorite(event, '${story.id}')" class="text-xl">
+                            ${favorites.includes(story.id) ? '❤️' : '🤍'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderCategories() {
+            const cats = ['All', ...new Set(stories.map(s => s.category))];
+            const container = document.getElementById('category-filters');
+            container.innerHTML = cats.map(cat => `
+                <button onclick="filterByCategory('${cat}')" class="whitespace-nowrap px-4 py-1 rounded-full bg-gray-100 text-gray-600 text-sm font-medium hover:bg-blue-600 hover:text-white transition">
+                    ${cat}
+                </button>
+            `).join('');
+        }
+
+        function filterByCategory(cat) {
+            if (cat === 'All') renderStories(stories);
+            else renderStories(stories.filter(s => s.category === cat));
+        }
+
+        function filterStories() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = stories.filter(s => 
+                s.title.toLowerCase().includes(query) || 
+                s.category.toLowerCase().includes(query)
+            );
+            renderStories(filtered);
+        }
+
+        function openStory(id) {
+            // Trigger Rewarded Ad on story open
+            triggerRewardedAd(() => {
+                const story = stories.find(s => s.id === id);
+                document.getElementById('read-title').innerText = story.title;
+                document.getElementById('read-meta').innerText = `Category: ${story.category} | Author: ${story.author}`;
+                document.getElementById('read-content').innerText = story.content;
+                document.getElementById('read-content').style.fontSize = `${currentFontSize}px`;
+                showScreen('reading-screen');
+            });
+        }
+
+        // 6. AD INTEGRATION
+        function triggerInAppAd() {
+            if (typeof show_10366901 === 'function') {
+                show_10366901({
+                    type: 'inApp',
+                    inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
+                });
+            }
+        }
+
+        function triggerRewardedAd(callback) {
+            if (typeof show_10366901 === 'function') {
+                show_10366901().then(() => {
+                    if(callback) callback();
+                }).catch(() => {
+                    // Fallback if ad fails
+                    if(callback) callback();
+                });
+            } else {
+                if(callback) callback();
+            }
+        }
+
+        // 7. READING TOOLS
+        function toggleNightMode() {
+            document.body.classList.toggle('night-mode');
+            document.querySelectorAll('.night-aware').forEach(el => el.classList.toggle('bg-gray-800'));
+            document.querySelectorAll('.night-aware-btn').forEach(el => el.classList.toggle('bg-gray-700'));
+        }
+
+        function changeFontSize(delta) {
+            currentFontSize += delta;
+            document.getElementById('read-content').style.fontSize = `${currentFontSize}px`;
+        }
+
+        function toggleFavorite(e, id) {
+            e.stopPropagation();
+            if (favorites.includes(id)) {
+                favorites = favorites.filter(fid => fid !== id);
+            } else {
+                favorites.push(id);
+            }
+            localStorage.setItem('fav_stories', JSON.stringify(favorites));
+            renderStories(stories);
+            renderFavorites();
+        }
+
+        function renderFavorites() {
+            const favStories = stories.filter(s => favorites.includes(s.id));
+            const list = document.getElementById('fav-list');
+            if(favStories.length === 0) {
+                list.innerHTML = `<p class="text-gray-400 text-center py-10">No favorites yet.</p>`;
+                return;
+            }
+            list.innerHTML = favStories.map(story => `
+                <div class="bg-white p-4 rounded-xl shadow-sm border flex justify-between items-center card" onclick="openStory('${story.id}')">
+                    <div>
+                        <h4 class="font-bold">${story.title}</h4>
+                        <p class="text-xs text-gray-500">${story.category}</p>
+                    </div>
+                    <button onclick="toggleFavorite(event, '${story.id}')" class="text-red-500 text-xl">❤️</button>
+                </div>
+            `).join('');
+        }
+
+        function shareStory() {
+            const title = document.getElementById('read-title').innerText;
+            tg.shareToStory ? tg.shareToStory("https://t.me/your_bot_user_name", {text: `Check out this story: ${title}`}) : 
+            tg.openTelegramLink(`https://t.me/share/url?url=https://t.me/your_bot_user_name&text=Reading: ${title}`);
+        }
+
+        // 8. ADMIN PANEL LOGIC
+        const storyForm = document.getElementById('story-form');
+        if(storyForm) {
+            storyForm.onsubmit = async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('edit-id').value;
+                const storyData = {
+                    title: document.getElementById('story-title').value,
+                    author: document.getElementById('story-author').value,
+                    category: document.getElementById('story-category').value,
+                    summary: document.getElementById('story-summary').value,
+                    content: document.getElementById('story-content').value,
+                    status: document.getElementById('story-status').value,
+                    admin_id: ADMIN_ID,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                if (id) {
+                    await db.collection('stories').doc(id).update(storyData);
+                } else {
+                    await db.collection('stories').add(storyData);
+                }
+                
+                storyForm.reset();
+                document.getElementById('edit-id').value = "";
+                document.getElementById('form-mode').innerText = "Add New Story";
+                tg.showAlert("Story Saved Successfully!");
+            };
+        }
+
+        async function saveAppSettings() {
+            const direct = document.getElementById('setting-direct-link').value;
+            const banner = document.getElementById('setting-banner').value;
+            await db.collection('settings').doc('appConfig').set({
+                directLink: direct || "https://otieu.com/4/10189186",
+                banner: banner,
+                admin_id: ADMIN_ID
+            });
+            tg.showAlert("Settings Updated!");
+        }
+
+        function renderAdminList() {
+            const list = document.getElementById('admin-story-list');
+            list.innerHTML = stories.map(s => `
+                <div class="bg-white p-3 border rounded mb-2 flex justify-between items-center card">
+                    <div>
+                        <span class="font-bold">${s.title}</span> 
+                        <span class="text-[10px] ml-2 px-1 rounded ${s.status === 'Published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}">${s.status}</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="editStory('${s.id}')" class="text-blue-500">Edit</button>
+                        <button onclick="deleteStory('${s.id}')" class="text-red-500">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function editStory(id) {
+            const s = stories.find(x => x.id === id);
+            document.getElementById('edit-id').value = s.id;
+            document.getElementById('story-title').value = s.title;
+            document.getElementById('story-author').value = s.author;
+            document.getElementById('story-category').value = s.category;
+            document.getElementById('story-summary').value = s.summary;
+            document.getElementById('story-content').value = s.content;
+            document.getElementById('story-status').value = s.status;
+            document.getElementById('form-mode').innerText = "Editing Story";
+            window.scrollTo(0, document.getElementById('story-form').offsetTop);
+        }
+
+        async function deleteStory(id) {
+            if(confirm("Delete this story?")) {
+                await db.collection('stories').doc(id).delete();
+            }
+        }
+
+        // Initialize
+        checkAdmin();
+        renderFavorites();
+    </script>
+</body>
+</html>
