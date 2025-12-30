@@ -752,29 +752,34 @@
             content.style.lineHeight = (currentFontSize + 12) + 'px';
         }
 
-        function shareStory() {
-            if(!currentStoryId) return;
+    function shareStory() {
+    if(!currentStoryId) return;
 
-            const title = document.getElementById('read-title').innerText;
-            const baseUrl = window.location.origin + window.location.pathname;
-            const shareUrl = `${baseUrl}?id=${currentStoryId}`;
-            
-            const shareText = `পড়ুন: "${title}"\nলিংক: ${shareUrl}`;
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: title,
-                    text: `পড়ুন: "${title}" - ${appSettings.name}`,
-                    url: shareUrl
-                }).catch(err => console.log('Share closed'));
-            } else {
-                navigator.clipboard.writeText(shareText).then(() => {
-                    alert("লিংক কপি হয়েছে! শেয়ার করুন:\n" + shareUrl);
-                }).catch(() => {
-                    prompt("লিংকটি কপি করুন:", shareUrl);
-                });
-            }
-        }
+    // আপনার সেটিংস
+    const botUsername = "Bangalchotigolpo_bot"; 
+    const miniAppName = "Bangalchotigolpo_bot"; // যেহেতু নাম একই
+    
+    const title = document.getElementById('read-title').innerText;
+    
+    // টেলিগ্রাম মিনি অ্যাপ লিংক (startapp প্যারামিটার সহ)
+    const shareUrl = `https://t.me/${botUsername}/${miniAppName}?startapp=${currentStoryId}`;
+    
+    const shareText = `🔥 দারুণ গল্প: "${title}"\n\nপুরোটা পড়তে নিচের লিংকে ক্লিক করুন 👇\n${shareUrl}`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            text: shareText
+        }).catch(err => console.log('Share error', err));
+    } else {
+        navigator.clipboard.writeText(shareText).then(() => {
+            alert("টেলিগ্রাম শেয়ার লিংক কপি হয়েছে!");
+        }).catch(() => {
+            prompt("লিংকটি কপি করুন:", shareText);
+        });
+    }
+}
+
 
         // --- ADMIN FUNCTIONS ---
         async function updateSettings() {
