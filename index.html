@@ -2,12 +2,15 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title id="app-title-tag">বাংলা চটি গল্প</title>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
+    <!-- Monetag Master SDK -->
+    <script src='//libtl.com/sdk.js' data-zone='10366901' data-sdk='show_10366901'></script>
+
     <!-- Firebase SDK (Version 8 compatible) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -15,12 +18,13 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;600;700&display=swap');
-        
+
         body {
             font-family: 'Hind Siliguri', sans-serif;
             background-color: #f8fafc;
             color: #1e293b;
             transition: background-color 0.3s, color 0.3s;
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* Night Mode Styles */
@@ -28,16 +32,22 @@
             background-color: #0f172a;
             color: #e2e8f0;
         }
-        
+
         .night-mode .bg-white { background-color: #1e293b; }
         .night-mode .text-gray-800 { color: #f1f5f9; }
+        .night-mode .text-gray-900 { color: #ffffff; }
         .night-mode .text-gray-500 { color: #94a3b8; }
         .night-mode .border-gray-100 { border-color: #334155; }
         .night-mode .bg-gray-50 { background-color: #334155; }
         .night-mode .hover\:bg-gray-50:hover { background-color: #475569; }
+        .night-mode input, .night-mode textarea, .night-mode select {
+            background-color: #334155;
+            color: white;
+            border-color: #475569;
+        }
 
         .hidden { display: none !important; }
-        
+
         /* Loader Animation */
         .loader {
             border: 4px solid #f3f3f3;
@@ -48,48 +58,22 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
+
         /* Scrollbar Hide */
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* Pagination Button Styles */
         .page-btn {
-            width: 35px;
-            height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
+            width: 35px; height: 35px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; font-weight: bold; font-size: 14px;
+            cursor: pointer; transition: all 0.2s;
         }
-        .page-btn.active {
-            background-color: #2563eb;
-            color: white;
-            border: none;
-        }
-        .page-btn.inactive {
-            background-color: white;
-            border: 1px solid #e2e8f0;
-            color: #1e293b;
-        }
-        .night-mode .page-btn.inactive {
-            background-color: #1e293b;
-            border-color: #334155;
-            color: #e2e8f0;
-        }
-        .page-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .page-btn.active { background-color: #2563eb; color: white; border: none; }
+        .page-btn.inactive { background-color: white; border: 1px solid #e2e8f0; color: #1e293b; }
+        .night-mode .page-btn.inactive { background-color: #1e293b; border-color: #334155; color: #e2e8f0; }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -101,23 +85,23 @@
     </div>
 
     <!-- Age Verification Modal -->
-    <div id="age-gate" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-5">
-        <div class="bg-white p-8 rounded-2xl max-w-sm text-center">
+    <div id="age-gate" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-5 backdrop-blur-sm">
+        <div class="bg-white p-8 rounded-2xl max-w-sm text-center shadow-2xl">
             <h2 class="text-2xl font-bold text-red-600 mb-4">সতর্কীকরণ (18+)</h2>
             <p class="text-gray-600 mb-6">এই অ্যাপের বিষয়বস্তু শুধুমাত্র প্রাপ্তবয়স্কদের জন্য। আপনার বয়স কি ১৮ বছরের বেশি?</p>
-            <button onclick="acceptAgeGate()" class="bg-red-600 text-white px-8 py-3 rounded-full font-bold w-full hover:bg-red-700">হ্যাঁ, আমি ১৮+</button>
+            <button onclick="acceptAgeGate()" class="bg-red-600 text-white px-8 py-3 rounded-full font-bold w-full hover:bg-red-700 transition">হ্যাঁ, আমি ১৮+</button>
         </div>
     </div>
 
     <!-- Auth Modal -->
     <div id="auth-modal" class="hidden fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-5 backdrop-blur-sm">
-        <div class="bg-white p-6 rounded-2xl w-full max-w-sm relative">
-            <button onclick="document.getElementById('auth-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 text-xl">×</button>
+        <div class="bg-white p-6 rounded-2xl w-full max-w-sm relative shadow-xl">
+            <button onclick="document.getElementById('auth-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 text-xl hover:text-red-500">×</button>
             <h3 class="text-xl font-bold mb-4 text-center text-gray-800">অ্যাডমিন লগইন</h3>
             <form onsubmit="handleAuth(event)" class="space-y-4">
                 <input type="email" id="auth-email" placeholder="ইমেইল" class="w-full p-3 border rounded-lg bg-gray-50 focus:outline-none focus:border-blue-500 text-gray-800">
                 <input type="password" id="auth-pass" placeholder="পাসওয়ার্ড" class="w-full p-3 border rounded-lg bg-gray-50 focus:outline-none focus:border-blue-500 text-gray-800">
-                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold">লগইন</button>
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition">লগইন</button>
             </form>
         </div>
     </div>
@@ -126,74 +110,73 @@
     <div id="home-screen">
         <!-- Header -->
         <header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100 px-4 py-3 flex justify-between items-center">
-            <h1 id="app-nav-title" class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">বাংলা চটি গল্প</h1>
+            <h1 id="app-nav-title" class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 cursor-pointer" onclick="window.location.reload()">বাংলা চটি গল্প</h1>
             <div class="flex items-center gap-3">
-                <button onclick="toggleNightMode()" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200">🌙</button>
-                <button onclick="handleProfileClick()" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200">👤</button>
+                <button onclick="toggleNightMode()" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition">🌙</button>
+                <button onclick="handleProfileClick()" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition">👤</button>
             </div>
         </header>
 
         <!-- Search & Filter -->
         <div class="p-4 space-y-4">
-            <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="গল্প বা লেখক খুঁজুন..." class="w-full p-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:border-blue-500 text-gray-800">
-            
+            <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="গল্প বা লেখক খুঁজুন..." class="w-full p-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:border-blue-500 text-gray-800 transition">
+
             <div id="category-filters" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                <!-- Categories will be injected here -->
+                <!-- Categories injected here -->
             </div>
         </div>
 
         <!-- Stories List -->
-        <div id="stories-list" class="px-4 space-y-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Stories will be injected here -->
+        <div id="stories-list" class="px-4 space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Stories injected here -->
         </div>
 
         <!-- No Data Message -->
         <div id="no-data-msg" class="hidden text-center py-20 text-gray-400">
-            কোনো গল্প পাওয়া যায়নি 😞
+            <p class="text-4xl mb-2">😞</p>
+            <p>কোনো গল্প পাওয়া যায়নি</p>
         </div>
 
-        <!-- Pagination Controls (NEW) -->
-        <div id="pagination-container" class="py-8 flex justify-center items-center gap-2 flex-wrap px-4 pb-20">
-            <!-- Pagination injected by JS -->
-        </div>
+        <!-- Pagination -->
+        <div id="pagination-container" class="py-8 flex justify-center items-center gap-2 flex-wrap px-4 pb-20"></div>
 
-        <!-- Admin Access Float Button (Visible only to Admin) -->
-        <button id="admin-indicator" onclick="showScreen('admin-panel'); renderAdminListUI();" class="hidden fixed bottom-6 right-6 bg-purple-600 text-white p-4 rounded-full shadow-lg font-bold z-30">
+        <!-- Admin Access Float Button -->
+        <button id="admin-indicator" onclick="showScreen('admin-panel'); renderAdminListUI();" class="hidden fixed bottom-6 right-6 bg-purple-600 text-white p-4 rounded-full shadow-lg font-bold z-30 hover:scale-105 transition">
             ⚙️ প্যানেল
         </button>
     </div>
 
     <!-- ================= READING SCREEN ================= -->
     <div id="reading-screen" class="hidden min-h-screen bg-white pb-20">
-        <!-- Reading Header with Font Controls -->
+        <!-- Reading Header -->
         <div class="sticky top-0 bg-white/95 backdrop-blur border-b p-3 flex justify-between items-center z-10 shadow-sm">
-            <button onclick="closeReadingScreen()" class="text-blue-600 font-bold px-2 py-1 flex items-center gap-1">
+            <button onclick="closeReadingScreen()" class="text-blue-600 font-bold px-2 py-1 flex items-center gap-1 hover:bg-blue-50 rounded">
                 <span>←</span> ফিরে যান
             </button>
-            
+
             <div class="flex items-center gap-2">
-                <button id="read-fav-btn" onclick="toggleReadScreenFavorite()" class="p-2 text-xl border rounded bg-gray-50 mr-2">🤍</button>
-                <span class="text-xs text-gray-400 mr-1">ফন্ট:</span>
+                <button id="read-fav-btn" onclick="toggleReadScreenFavorite()" class="p-2 text-xl border rounded bg-gray-50 hover:bg-gray-100 transition mr-2">🤍</button>
+                <span class="text-xs text-gray-400 mr-1 hidden sm:inline">ফন্ট:</span>
                 <button onclick="changeFontSize('decrease')" class="bg-gray-100 border px-3 py-1 rounded text-sm font-bold active:bg-gray-200 text-black">A-</button>
                 <button onclick="changeFontSize('increase')" class="bg-gray-100 border px-3 py-1 rounded text-sm font-bold active:bg-gray-200 text-black">A+</button>
             </div>
         </div>
-    
+
         <div class="p-5 max-w-3xl mx-auto">
             <h1 id="read-title" class="text-2xl md:text-3xl font-bold mb-3 text-gray-900 leading-snug">গল্পের নাম</h1>
-            
+
             <div class="flex flex-wrap justify-between items-center text-sm text-gray-500 mb-6 border-b pb-4 gap-2">
                 <div class="flex gap-3">
-                    <span id="read-meta-author" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded">লেখক</span> 
-                    <span id="read-meta-cat" class="bg-gray-100 px-2 py-0.5 rounded">ক্যাটাগরি</span>
+                    <span id="read-meta-author" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100">লেখক</span> 
+                    <span id="read-meta-cat" class="bg-gray-100 px-2 py-0.5 rounded border border-gray-200 text-gray-600">ক্যাটাগরি</span>
                 </div>
-                <div id="read-meta-views" class="flex items-center gap-1 font-medium">👁️ 0</div>
+                <div id="read-meta-views" class="flex items-center gap-1 font-medium bg-gray-50 px-2 py-0.5 rounded">👁️ 0</div>
             </div>
-    
-            <div id="read-content" class="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium" style="font-size: 18px;">
-                গল্প লোড হচ্ছে...
+
+            <div id="read-content" class="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium select-none" style="font-size: 18px;">
+                <!-- Content will be injected here with ads -->
             </div>
-    
+
             <div class="mt-12 pt-6 border-t border-gray-100">
                 <button onclick="shareStory()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3.5 rounded-xl font-bold shadow-lg flex justify-center items-center gap-2 transition-transform active:scale-95">
                     <span>🔗</span> শেয়ার করার জন্য লিংক তৈরি করুন
@@ -204,11 +187,11 @@
 
     <!-- ================= ADMIN PANEL ================= -->
     <div id="admin-panel" class="hidden min-h-screen bg-gray-50 pb-20">
-        <div class="bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-20">
+        <div class="bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-20 border-b">
             <h2 class="text-xl font-bold text-gray-800">অ্যাডমিন প্যানেল</h2>
             <div class="flex gap-2">
-                <button onclick="showScreen('home-screen')" class="px-4 py-2 bg-gray-200 rounded-lg text-sm text-black">হোম</button>
-                <button onclick="logoutAdmin()" class="px-4 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-bold">লগআউট</button>
+                <button onclick="showScreen('home-screen')" class="px-4 py-2 bg-gray-200 rounded-lg text-sm text-black hover:bg-gray-300">হোম</button>
+                <button onclick="logoutAdmin()" class="px-4 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-bold hover:bg-red-200">লগআউট</button>
             </div>
         </div>
 
@@ -218,34 +201,36 @@
                 <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">⚙️ অ্যাপ সেটিংস</h3>
                 <div class="grid gap-4 md:grid-cols-2">
                     <input id="set-app-name" type="text" placeholder="অ্যাপের নাম" class="p-2 border rounded text-black">
-                    <input id="set-ad-link" type="text" placeholder="Adsterra Direct Link" class="p-2 border rounded text-black">
+                    <input id="set-ad-link" type="text" placeholder="Monetag Direct Link (URL)" class="p-2 border rounded text-black">
                 </div>
-                <button onclick="updateSettings()" class="mt-4 bg-gray-800 text-white px-6 py-2 rounded-lg text-sm">সেভ করুন</button>
+                <button onclick="updateSettings()" class="mt-4 bg-gray-800 text-white px-6 py-2 rounded-lg text-sm hover:bg-gray-900">সেভ করুন</button>
             </div>
 
             <!-- Category Management -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">📂 ক্যাটাগরি ম্যানেজমেন্ট</h3>
                 <div class="flex gap-2 mb-4">
-                    <input id="new-cat-input" type="text" placeholder="নতুন ক্যাটাগরি নাম" class="flex-1 p-2 border rounded text-black">
-                    <button onclick="addCategory()" class="bg-green-600 text-white px-4 rounded font-bold">+</button>
+                    <input id="new-cat-input" type="text" placeholder="নতুন ক্যাটাগরি নাম" class="flex-1 p-2 border rounded text-black focus:outline-none focus:border-blue-500">
+                    <button onclick="addCategory()" class="bg-green-600 text-white px-4 rounded font-bold hover:bg-green-700 active:bg-green-800">+</button>
                 </div>
-                <div id="admin-cat-list" class="flex flex-wrap gap-2"></div>
+                <div id="admin-cat-list" class="flex flex-wrap gap-2">
+                    <!-- Categories will load here -->
+                </div>
             </div>
 
             <!-- Story Form -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <div class="flex justify-between items-center mb-4 border-b pb-2">
                     <h3 id="form-mode-title" class="font-bold text-lg text-gray-800">📝 গল্প লিখুন</h3>
-                    <button onclick="resetForm()" class="text-xs text-blue-600 underline">রিসেট</button>
+                    <button onclick="resetForm()" class="text-xs text-blue-600 underline hover:text-blue-800">রিসেট</button>
                 </div>
-                
+
                 <form id="story-form" class="space-y-4">
                     <input type="hidden" id="edit-id">
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input id="story-title" required type="text" placeholder="গল্পের নাম" class="p-3 border rounded text-black w-full">
-                        <input id="story-author" required type="text" placeholder="লেখকের নাম" class="p-3 border rounded text-black w-full">
+                        <input id="story-title" required type="text" placeholder="গল্পের নাম" class="p-3 border rounded text-black w-full focus:border-blue-500 outline-none">
+                        <input id="story-author" required type="text" placeholder="লেখকের নাম" class="p-3 border rounded text-black w-full focus:border-blue-500 outline-none">
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -256,19 +241,17 @@
                         </select>
                     </div>
 
-                    <textarea id="story-summary" rows="2" placeholder="ছোট সারসংক্ষেপ (Summary)" class="w-full p-3 border rounded text-black"></textarea>
-                    <textarea id="story-content" required rows="10" placeholder="মূল গল্প এখানে লিখুন..." class="w-full p-3 border rounded text-black"></textarea>
+                    <textarea id="story-summary" rows="2" placeholder="ছোট সারসংক্ষেপ (Summary - যা লিস্টে দেখাবে)" class="w-full p-3 border rounded text-black focus:border-blue-500 outline-none"></textarea>
+                    <textarea id="story-content" required rows="10" placeholder="মূল গল্প এখানে লিখুন..." class="w-full p-3 border rounded text-black focus:border-blue-500 outline-none"></textarea>
 
-                    <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700">সাবমিট করুন</button>
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition">সাবমিট করুন</button>
                 </form>
             </div>
 
             <!-- Admin Story List (Edit/Delete) -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">সব গল্পের তালিকা</h3>
-                <div id="admin-story-list" class="space-y-3">
-                    <!-- List injected by JS -->
-                </div>
+                <div id="admin-story-list" class="space-y-3"></div>
             </div>
         </div>
     </div>
@@ -277,7 +260,7 @@
     <script>
         // --- CONFIGURATION ---
         const ADMIN_EMAIL = "bcg332006@gmail.com";
-        const DEFAULT_CATS = ['রোমান্টিক', 'পরকীয়া', 'ইনসেস্ট', 'ভাবি', 'লেসবিয়ান', 'ফ্যান্টাসি', 'অন্যান্য','মা ছেলে '];
+        const DEFAULT_CATS = ['রোমান্টিক', 'পরকীয়া', 'ইনসেস্ট', 'ভাবি', 'লেসবিয়ান', 'ফ্যান্টাসি', 'অন্যান্য', 'মা ছেলে'];
 
         const firebaseConfig = {
             apiKey: "AIzaSyA4gqOdRYydzPOR7a8brxBy2Bs49MtVqJw",
@@ -296,7 +279,7 @@
         const auth = firebase.auth();
 
         // State Variables
-        let appSettings = { name: "বাংলা চটি গল্প", adLink: "https://otieu.com/4/10189186" };
+        let appSettings = { name: "বাংলা চটি গল্প", adLink: "https://google.com" };
         let categories = [...DEFAULT_CATS]; 
         let stories = [];
         let currentUser = null;
@@ -307,7 +290,7 @@
         // --- PAGINATION VARIABLES ---
         let currentPage = 1;
         const itemsPerPage = 10;
-        let currentFilteredList = []; // This holds the list after search/category filter
+        let currentFilteredList = [];
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', init);
@@ -318,7 +301,6 @@
                 document.getElementById('age-gate').classList.remove('hidden');
             }
 
-            // Initial Render
             renderCategoriesUI();
 
             // Check Night Mode
@@ -333,6 +315,9 @@
                     document.getElementById('admin-indicator').classList.remove('hidden');
                 } else {
                     document.getElementById('admin-indicator').classList.add('hidden');
+                    if(!document.getElementById('admin-panel').classList.contains('hidden')) {
+                        showScreen('home-screen');
+                    }
                 }
             });
 
@@ -343,31 +328,34 @@
                     updateAppMeta();
                 }
                 removeLoader();
-            }, err => removeLoader());
+            }, err => {
+                console.error("Settings load error:", err);
+                removeLoader();
+            });
 
             // Load Categories
             db.collection('config').doc('categories').onSnapshot(doc => {
                 if(doc.exists && doc.data().list && doc.data().list.length > 0) {
                     categories = doc.data().list;
-                } else {
-                    categories = [...DEFAULT_CATS];
                 }
                 renderCategoriesUI();
             });
 
             // Load Stories
+            const storyLoaderTimeout = setTimeout(() => removeLoader(), 5000); 
+
             db.collection('stories').orderBy('updatedAt', 'desc').onSnapshot(snap => {
+                clearTimeout(storyLoaderTimeout);
                 stories = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                
-                // On initial load, set current list to all stories
+
                 applyFilters(); 
-                
+
                 if(currentUser && currentUser.email === ADMIN_EMAIL) renderAdminListUI();
 
                 // Check URL for shared story ID
                 if (!initialUrlCheckDone && stories.length > 0) {
                     const params = new URLSearchParams(window.location.search);
-                    const sharedId = params.get('id');
+                    const sharedId = params.get('id') || params.get('startapp');
                     if(sharedId) {
                         const target = stories.find(s => s.id === sharedId);
                         if(target) {
@@ -376,6 +364,9 @@
                     }
                     initialUrlCheckDone = true;
                 }
+            }, err => {
+                console.error("Story load error:", err);
+                removeLoader();
             });
         }
 
@@ -390,16 +381,23 @@
             const setAppName = document.getElementById('set-app-name');
             const setAdLink = document.getElementById('set-ad-link');
 
-            if(titleTag) titleTag.innerText = appSettings.name;
-            if(navTitle) navTitle.innerText = appSettings.name;
-            if(setAppName) setAppName.value = appSettings.name;
-            if(setAdLink) setAdLink.value = appSettings.adLink;
+            if(titleTag && appSettings.name) titleTag.innerText = appSettings.name;
+            if(navTitle && appSettings.name) navTitle.innerText = appSettings.name;
+            if(setAppName) setAppName.value = appSettings.name || "";
+            if(setAdLink) setAdLink.value = appSettings.adLink || "";
+        }
+
+        // --- DIRECT LINK TRIGGER HELPER (For Pagination Only) ---
+        function triggerDirectLinkAd() {
+            // শুধুমাত্র পেজিনেশন বা অন্য জায়গায় Direct Link ব্যবহার হবে
+            if(appSettings.adLink && appSettings.adLink.startsWith('http')) {
+                window.open(appSettings.adLink, '_blank');
+            }
         }
 
         function acceptAgeGate() {
             localStorage.setItem('age_verified', 'true');
             document.getElementById('age-gate').classList.add('hidden');
-            if(appSettings.adLink) window.open(appSettings.adLink, '_blank');
         }
 
         // --- AUTHENTICATION ---
@@ -407,7 +405,7 @@
             e.preventDefault();
             const email = document.getElementById('auth-email').value;
             const pass = document.getElementById('auth-pass').value;
-            
+
             try {
                 await auth.signInWithEmailAndPassword(email, pass);
                 document.getElementById('auth-modal').classList.add('hidden');
@@ -444,25 +442,15 @@
         function toggleFavorite(e, id) {
             e.stopPropagation(); 
             let favs = getFavorites();
-            
+
             if(favs.includes(id)) {
                 favs = favs.filter(f => f !== id);
             } else {
                 favs.push(id);
             }
-            
-            localStorage.setItem('favStories', JSON.stringify(favs));
-            
-            // Update UI Button
-            const btn = document.getElementById(`fav-btn-${id}`);
-            if(btn) btn.innerText = favs.includes(id) ? '❤️' : '🤍';
 
-            // Refresh current view if needed
-            // If active tab is favorites, reload the list
-            const activeFilter = document.querySelector('#category-filters .bg-pink-600');
-            if(activeFilter) {
-                filterByCat('FAVORITES');
-            }
+            localStorage.setItem('favStories', JSON.stringify(favs));
+            applyFilters();
         }
 
         function toggleReadScreenFavorite() {
@@ -475,20 +463,14 @@
             }
             localStorage.setItem('favStories', JSON.stringify(favs));
             document.getElementById('read-fav-btn').innerText = favs.includes(currentStoryId) ? '❤️' : '🤍';
-            
-            // Update list icon if visible
-            const listBtn = document.getElementById(`fav-btn-${currentStoryId}`);
-            if(listBtn) listBtn.innerText = favs.includes(currentStoryId) ? '❤️' : '🤍';
         }
 
-        // --- FILTERING & PAGINATION LOGIC ---
-        
-        // Master function to handle data preparation
+        // --- FILTERING & PAGINATION ---
         function applyFilters(categoryOverride = null) {
-            const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+            let searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
             const activeCatBtn = document.querySelector('#category-filters .bg-blue-600');
             const activeFavBtn = document.querySelector('#category-filters .bg-pink-600');
-            
+
             let cat = 'ALL';
             if (categoryOverride) {
                 cat = categoryOverride;
@@ -498,8 +480,9 @@
                 cat = activeCatBtn.innerText;
             }
 
-            // 1. Filter by Category
             let filtered = stories;
+
+            // 1. Filter by Category
             if(cat === 'FAVORITES') {
                 const favIds = getFavorites();
                 filtered = stories.filter(s => favIds.includes(s.id));
@@ -507,25 +490,18 @@
                 filtered = stories.filter(s => s.category === cat);
             }
 
-            // 2. Filter by Search Query
+            // 2. Filter by Search
             if(searchQuery) {
                 filtered = filtered.filter(s => 
-                    s.title.toLowerCase().includes(searchQuery) || 
-                    s.author.toLowerCase().includes(searchQuery)
+                    (s.title && s.title.toLowerCase().includes(searchQuery)) || 
+                    (s.author && s.author.toLowerCase().includes(searchQuery))
                 );
             }
-            
+
             // 3. Filter only Published
             filtered = filtered.filter(s => s.status === 'Published');
 
-            // Update State
             currentFilteredList = filtered;
-            
-            // If function triggered by user interaction (not initial load), reset to page 1
-            // But if called by pagination, we handle that in changePage.
-            // Here we assume if applyFilters is called, we reset page unless specified otherwise.
-            // For simplicity: Search/Cat change resets page.
-            
             renderPaginatedList();
         }
 
@@ -535,39 +511,32 @@
         }
 
         function filterByCat(cat) {
-            currentPage = 1; // Reset page
-            
-            // Update Button Styles
+            currentPage = 1; 
             const btns = document.querySelectorAll('#category-filters button');
             btns.forEach(b => {
-                b.className = "px-5 py-1.5 bg-white text-gray-800 border rounded-full text-sm whitespace-nowrap shadow-sm hover:bg-gray-50";
+                b.className = "px-5 py-1.5 bg-white text-gray-800 border rounded-full text-sm whitespace-nowrap shadow-sm hover:bg-gray-50 transition";
             });
-            
-            // Identify which button was clicked (event target) or find by text
-            if(event && event.target) {
-                // If clicked via UI
-                 if(cat === 'FAVORITES') {
-                    event.target.className = "px-5 py-1.5 bg-pink-600 text-white border rounded-full text-sm whitespace-nowrap shadow-sm font-bold";
-                 } else {
-                    event.target.className = "px-5 py-1.5 bg-blue-600 text-white border rounded-full text-sm whitespace-nowrap shadow-sm font-bold";
-                 }
-            } else {
-                // Initial load or manual trigger - find the button
-                 // Skip complex DOM finding for now, basic logic works
-            }
 
+            if(event && event.target) {
+                 if(cat === 'FAVORITES') {
+                    event.target.className = "px-5 py-1.5 bg-pink-600 text-white border rounded-full text-sm whitespace-nowrap shadow-sm font-bold transition";
+                 } else {
+                    event.target.className = "px-5 py-1.5 bg-blue-600 text-white border rounded-full text-sm whitespace-nowrap shadow-sm font-bold transition";
+                 }
+            }
             applyFilters(cat);
         }
 
         function changePage(page) {
-            if(page < 1 || page > Math.ceil(currentFilteredList.length / itemsPerPage)) return;
+            const totalPages = Math.ceil(currentFilteredList.length / itemsPerPage);
+            if(page < 1 || page > totalPages) return;
+            
+            // AD TRIGGER: Next page uses Direct Link Popup (Legacy)
+            triggerDirectLinkAd();
+
             currentPage = page;
             renderPaginatedList();
-            
-            // Scroll to top of list
-            const container = document.getElementById('stories-list');
-            const offset = container.getBoundingClientRect().top + window.scrollY - 80;
-            window.scrollTo({top: offset, behavior: 'smooth'});
+            window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
         function renderPaginatedList() {
@@ -583,19 +552,17 @@
             }
             noData.classList.add('hidden');
 
-            // Calculate Slice
             const startIndex = (currentPage - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
             const pageData = currentFilteredList.slice(startIndex, endIndex);
 
-            // Render List
             const favs = getFavorites();
             list.innerHTML = pageData.map(s => {
                 const isFav = favs.includes(s.id);
                 return `
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 card active:scale-[0.98] transition-transform cursor-pointer relative" onclick="openStory('${s.id}')">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 card active:scale-[0.98] transition-transform cursor-pointer relative hover:shadow-md" onclick="openStory('${s.id}')">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full">${s.category}</span>
+                        <span class="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full">${s.category || 'অন্যান্য'}</span>
                         <div class="flex items-center gap-3">
                              <div class="flex items-center gap-1">
                                 <span class="text-[10px] text-gray-400">👁️ ${s.views || 0}</span>
@@ -606,12 +573,11 @@
                         </div>
                     </div>
                     <h3 class="font-bold text-lg leading-tight mb-2 text-gray-800 dark:text-gray-100 pr-4">${s.title}</h3>
-                    <p class="text-gray-500 text-sm line-clamp-2">${s.summary}</p>
+                    <p class="text-gray-500 text-sm line-clamp-2">${s.summary || 'বিস্তারিত পড়তে ক্লিক করুন...'}</p>
                     <div class="mt-2 text-xs text-gray-400 text-right">লেখক: ${s.author}</div>
                 </div>
             `}).join('');
 
-            // Render Pagination Controls
             renderPaginationUI();
         }
 
@@ -624,14 +590,9 @@
                 return;
             }
 
-            let html = '';
+            let html = `<button onclick="changePage(${currentPage - 1})" class="page-btn ${currentPage === 1 ? 'inactive disabled opacity-50' : 'inactive'}" ${currentPage === 1 ? 'disabled' : ''}>←</button>`;
 
-            // Previous Button
-            html += `<button onclick="changePage(${currentPage - 1})" class="page-btn ${currentPage === 1 ? 'inactive disabled opacity-50' : 'inactive'}" ${currentPage === 1 ? 'disabled' : ''}>←</button>`;
-
-            // Numbered Buttons (Logic to show simple range)
             for (let i = 1; i <= totalPages; i++) {
-                // Show first, last, current, and neighbors
                 if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
                     html += `<button onclick="changePage(${i})" class="page-btn ${i === currentPage ? 'active' : 'inactive'}">${i}</button>`;
                 } else if (i === currentPage - 2 || i === currentPage + 2) {
@@ -639,13 +600,11 @@
                 }
             }
 
-            // Next Button
             html += `<button onclick="changePage(${currentPage + 1})" class="page-btn ${currentPage === totalPages ? 'inactive disabled opacity-50' : 'inactive'}" ${currentPage === totalPages ? 'disabled' : ''}>→</button>`;
-
             container.innerHTML = html;
         }
 
-        // --- UI RENDERING (Categories & Admin) ---
+        // --- UI RENDERING ---
         function renderCategoriesUI() {
             const filterDiv = document.getElementById('category-filters');
             const select = document.getElementById('story-category-select');
@@ -655,23 +614,23 @@
 
             // Filters
             let filtersHtml = `
-                <button onclick="filterByCat('ALL')" class="px-5 py-1.5 bg-blue-600 text-white border rounded-full text-sm whitespace-nowrap shadow-sm font-bold">সব</button>
-                <button onclick="filterByCat('FAVORITES')" class="px-5 py-1.5 bg-white text-gray-800 border rounded-full text-sm whitespace-nowrap shadow-sm hover:bg-gray-50 text-pink-600">❤️ ফেভারিট</button>
+                <button onclick="filterByCat('ALL')" class="px-5 py-1.5 bg-blue-600 text-white border rounded-full text-sm whitespace-nowrap shadow-sm font-bold transition">সব</button>
+                <button onclick="filterByCat('FAVORITES')" class="px-5 py-1.5 bg-white text-gray-800 border rounded-full text-sm whitespace-nowrap shadow-sm hover:bg-gray-50 transition text-pink-600">❤️ ফেভারিট</button>
             `;
             filtersHtml += categories.map(c => `
-                <button onclick="filterByCat('${c}')" class="px-5 py-1.5 bg-white text-gray-800 border rounded-full text-sm whitespace-nowrap shadow-sm hover:bg-gray-50">${c}</button>
+                <button onclick="filterByCat('${c}')" class="px-5 py-1.5 bg-white text-gray-800 border rounded-full text-sm whitespace-nowrap shadow-sm hover:bg-gray-50 transition">${c}</button>
             `).join('');
             filterDiv.innerHTML = filtersHtml;
-            
+
             // Select Dropdown
             if(select) {
                 select.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
             }
-            
-            // Admin List
+
+            // Admin List (Fixed rendering)
             if(adminCatList) {
                 adminCatList.innerHTML = categories.map(c => `
-                    <span class="bg-gray-100 border px-3 py-1 rounded-full text-xs flex items-center gap-2 text-black">
+                    <span class="bg-gray-100 border px-3 py-1 rounded-full text-xs flex items-center gap-2 text-black mb-1 mr-1">
                         ${c} <button onclick="deleteCategory('${c}')" class="text-red-500 font-bold hover:bg-red-100 rounded-full w-5 h-5 flex items-center justify-center">×</button>
                     </span>
                 `).join('');
@@ -681,7 +640,7 @@
         function renderAdminListUI() {
             const list = document.getElementById('admin-story-list');
             if(!list) return;
-            
+
             list.innerHTML = stories.map(s => `
                 <div class="flex justify-between items-center bg-gray-50 p-3 rounded border">
                     <div>
@@ -689,43 +648,89 @@
                         <span class="text-xs text-gray-500">${s.status} • 👁️ ${s.views || 0}</span>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="editStory('${s.id}')" class="text-blue-600 font-bold text-sm">Edit</button>
-                        <button onclick="deleteStory('${s.id}')" class="text-red-600 font-bold text-sm">Delete</button>
+                        <button onclick="editStory('${s.id}')" class="text-blue-600 font-bold text-sm hover:underline">Edit</button>
+                        <button onclick="deleteStory('${s.id}')" class="text-red-600 font-bold text-sm hover:underline">Delete</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        // --- STORY LOGIC ---
+        // --- STORY LOGIC (UPDATED WITH MONETAG SDK) ---
         function openStory(id) {
             const s = stories.find(x => x.id === id);
             if(!s) return;
 
-            currentStoryId = id; 
+            // 1. MONETAG SDK POPUP TRIGGER
+            if (typeof show_10366901 === 'function') {
+                show_10366901('pop').then(() => {
+                    // Ad finished or closed
+                }).catch(e => {
+                    console.log("Ad Error:", e);
+                });
+            } else {
+                // Fallback: Use Direct Link if SDK fails
+                triggerDirectLinkAd();
+            }
 
-            // Update URL
+            currentStoryId = id; 
             const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?id=' + id;
             window.history.pushState({path: newUrl}, '', newUrl);
 
-            // Increment View Count
-            db.collection('stories').doc(id).update({
-                views: firebase.firestore.FieldValue.increment(1)
-            }).catch(err => console.log("View update err", err));
+            // Increase View Count (Only if not admin)
+            if(!currentUser || currentUser.email !== ADMIN_EMAIL) {
+                db.collection('stories').doc(id).update({
+                    views: firebase.firestore.FieldValue.increment(1)
+                }).catch(err => console.log("View update err", err));
+            }
 
-            // Set Data
             document.getElementById('read-title').innerText = s.title;
             document.getElementById('read-meta-author').innerText = `লেখক: ${s.author}`;
             document.getElementById('read-meta-cat').innerText = s.category;
-            
-            const currentViews = s.views ? s.views : 0;
-            document.getElementById('read-meta-views').innerText = `👁️ ${currentViews + 1}`;
+            document.getElementById('read-meta-views').innerText = `👁️ ${s.views ? s.views + 1 : 1}`;
 
             const favs = getFavorites();
             document.getElementById('read-fav-btn').innerText = favs.includes(id) ? '❤️' : '🤍';
 
+            // --- 2. In-Article Ad Banner Logic (Kept as requested) ---
             const contentEl = document.getElementById('read-content');
-            contentEl.innerText = s.content;
-            
+            contentEl.innerHTML = ""; // Clear existing
+
+            const fullText = s.content;
+            const middleIndex = Math.floor(fullText.length / 2);
+            // Find nearest newline to avoid splitting sentences
+            const splitIndex = fullText.indexOf('\n', middleIndex);
+
+            let part1 = fullText;
+            let part2 = "";
+
+            if (splitIndex !== -1) {
+                part1 = fullText.substring(0, splitIndex);
+                part2 = fullText.substring(splitIndex);
+            }
+
+            // Render Part 1
+            const div1 = document.createElement('div');
+            div1.innerText = part1;
+            contentEl.appendChild(div1);
+
+            // Render Ad Banner (Middle) - Uses settings Direct Link
+            if (appSettings.adLink && part2) {
+                const adDiv = document.createElement('div');
+                adDiv.className = "my-8 p-4 bg-red-50 border border-red-100 rounded-xl text-center shadow-sm";
+                adDiv.innerHTML = `
+                    <p class="text-[10px] text-gray-400 mb-2 tracking-widest">SPONSORED</p>
+                    <a href="${appSettings.adLink}" target="_blank" class="inline-block bg-gradient-to-r from-red-600 to-pink-600 text-white px-8 py-3 rounded-full font-bold shadow-lg animate-pulse hover:scale-105 transition-transform">
+                        🔞 ১৮+ ভিডিও দেখতে এখানে ক্লিক করুন
+                    </a>
+                `;
+                contentEl.appendChild(adDiv);
+            }
+
+            // Render Part 2
+            const div2 = document.createElement('div');
+            div2.innerText = part2;
+            contentEl.appendChild(div2);
+
             contentEl.style.fontSize = currentFontSize + 'px';
             contentEl.style.lineHeight = (currentFontSize + 12) + 'px';
 
@@ -752,41 +757,36 @@
             content.style.lineHeight = (currentFontSize + 12) + 'px';
         }
 
-    function shareStory() {
-    if(!currentStoryId) return;
+        function shareStory() {
+            if(!currentStoryId) return;
 
-    // আপনার সেটিংস
-    const botUsername = "Bangalchotigolpo_bot"; 
-    const miniAppName = "Bangalchotigolpo"; // যেহেতু নাম একই
-    
-    const title = document.getElementById('read-title').innerText;
-    
-    // টেলিগ্রাম মিনি অ্যাপ লিংক (startapp প্যারামিটার সহ)
-    const shareUrl = `https://t.me/${botUsername}/${miniAppName}?startapp=${currentStoryId}`;
-    
-    const shareText = `🔥 দারুণ গল্প: "${title}"\n\nপুরোটা পড়তে নিচের লিংকে ক্লিক করুন 👇\n${shareUrl}`;
-    
-    if (navigator.share) {
-        navigator.share({
-            title: title,
-            text: shareText
-        }).catch(err => console.log('Share error', err));
-    } else {
-        navigator.clipboard.writeText(shareText).then(() => {
-            alert("টেলিগ্রাম শেয়ার লিংক কপি হয়েছে!");
-        }).catch(() => {
-            prompt("লিংকটি কপি করুন:", shareText);
-        });
-    }
-}
+            const botUsername = "Bangalchotigolpo_bot"; 
+            const miniAppName = "Bangalchotigolpo";
 
+            const title = document.getElementById('read-title').innerText;
+            const shareUrl = `https://t.me/${botUsername}/${miniAppName}?startapp=${currentStoryId}`;
+            const shareText = `🔥 দারুণ গল্প: "${title}"\n\nপুরোটা পড়তে নিচের লিংকে ক্লিক করুন 👇\n${shareUrl}`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    text: shareText
+                }).catch(err => console.log('Share error', err));
+            } else {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    alert("টেলিগ্রাম শেয়ার লিংক কপি হয়েছে!");
+                }).catch(() => {
+                    prompt("লিংকটি কপি করুন:", shareText);
+                });
+            }
+        }
 
         // --- ADMIN FUNCTIONS ---
         async function updateSettings() {
             const name = document.getElementById('set-app-name').value;
             const link = document.getElementById('set-ad-link').value;
             try {
-                await db.collection('config').doc('app_settings').set({ name, adLink: link });
+                await db.collection('config').doc('app_settings').set({ name, adLink: link }, { merge: true });
                 alert("সেটিংস সেভ হয়েছে!");
             } catch(e) { alert("Error: " + e.message); }
         }
@@ -794,18 +794,32 @@
         async function addCategory() {
             const val = document.getElementById('new-cat-input').value.trim();
             if(!val) return;
-            if(categories.includes(val)) { alert("এটি আগে থেকেই আছে!"); return; }
+            
+            // Check duplicates in current list
+            if(categories.includes(val)) { 
+                alert("এই ক্যাটাগরি আগে থেকেই আছে!"); 
+                return; 
+            }
+
             try {
                 const newList = [...categories, val];
+                // Update Firestore
                 await db.collection('config').doc('categories').set({ list: newList });
                 document.getElementById('new-cat-input').value = "";
-            } catch(e) { alert("Error updating category"); }
+            } catch(e) { 
+                console.error(e);
+                alert("Error updating category: " + e.message); 
+            }
         }
 
         async function deleteCategory(catName) {
             if(confirm(`'${catName}' ক্যাটাগরি ডিলিট করবেন?`)) {
-                const newList = categories.filter(c => c !== catName);
-                await db.collection('config').doc('categories').set({ list: newList });
+                try {
+                    const newList = categories.filter(c => c !== catName);
+                    await db.collection('config').doc('categories').set({ list: newList });
+                } catch(e) {
+                    alert("Error deleting category: " + e.message);
+                }
             }
         }
 
@@ -824,14 +838,13 @@
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
 
-                if(!id) {
-                    data.views = 0;
-                }
+                if(!id) data.views = 0;
 
                 try {
                     id ? await db.collection('stories').doc(id).update(data) : await db.collection('stories').add(data);
                     resetForm();
-                    alert("সফল হয়েছে!");
+                    alert("গল্প সেভ হয়েছে!");
+                    showScreen('admin-panel'); 
                 } catch(err) { alert("Error: " + err.message); }
             };
         }
@@ -844,19 +857,22 @@
 
         function editStory(id) {
             const s = stories.find(x => x.id === id);
+            if(!s) return;
             document.getElementById('edit-id').value = s.id;
             document.getElementById('story-title').value = s.title;
             document.getElementById('story-author').value = s.author;
             document.getElementById('story-category-select').value = s.category;
-            document.getElementById('story-summary').value = s.summary;
+            document.getElementById('story-summary').value = s.summary || "";
             document.getElementById('story-content').value = s.content;
             document.getElementById('story-status').value = s.status;
             document.getElementById('form-mode-title').innerText = "গল্প এডিট করছেন";
-            showScreen('admin-panel');
+            document.getElementById('story-form').scrollIntoView({ behavior: 'smooth' });
         }
 
         async function deleteStory(id) {
-            if(confirm("সত্যিই মুছে ফেলতে চান?")) await db.collection('stories').doc(id).delete();
+            if(confirm("সত্যিই মুছে ফেলতে চান?")) {
+                await db.collection('stories').doc(id).delete();
+            }
         }
 
         // --- UTILS ---
