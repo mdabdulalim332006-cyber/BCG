@@ -487,10 +487,33 @@
         }
 
         function shareStory() {
-            const text = `🔥 গল্প: "${document.getElementById('read-title').innerText}"\nপড়তে ক্লিক করুন: ${window.location.href}`;
-            if (navigator.share) navigator.share({title: 'গল্প', text}).catch(() => {});
-            else { navigator.clipboard.writeText(text); alert("লিংক কপি হয়েছে!"); }
-        }
+    // আপনার দেওয়া বটের তথ্য অনুযায়ী লিঙ্ক তৈরি করা হয়েছে
+    const botUsername = "Bangalchotigolpo_bot"; 
+    const appName = "Banglachotigolpo"; // মনে রাখবেন: BotFather-এ অ্যাপ সেটআপ করার সময় আপনি যে 'Short Name' দিয়েছেন সেটি এখানে হবে। সাধারণত এটি 'app' থাকে।
+    
+    // টেলিগ্রাম মিনি অ্যাপের ডাইরেক্ট লিঙ্ক (startapp প্যারামিটার সহ)
+    const telegramLink = `https://t.me/${botUsername}/${appName}?startapp=${currentStoryId}`;
+    
+    const storyTitle = document.getElementById('read-title').innerText;
+    const shareText = `🔥 গল্প: "${storyTitle}"\n\nসরাসরি টেলিগ্রামে পড়তে নিচের লিঙ্কে ক্লিক করুন:\n${telegramLink}`;
+
+    if (navigator.share) {
+        navigator.share({
+            title: storyTitle,
+            text: shareText
+        }).catch(() => {
+            // শেয়ার ক্যানসেল করলে বা ইরর হলে ক্লিপবোর্ডে কপি হবে
+            copyToClipboard(shareText);
+        });
+    } else {
+        copyToClipboard(shareText);
+    }
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text);
+    alert("টেলিগ্রাম মিনি অ্যাপ লিঙ্ক কপি হয়েছে!");
+}
 
         async function updateSettings() {
             const name = document.getElementById('set-app-name').value;
