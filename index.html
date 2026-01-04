@@ -6,7 +6,6 @@
     <title id="app-title-tag">বাংলা চটি গল্প</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-
     <script src='//libtl.com/sdk.js' data-zone='10366901' data-sdk='show_10366901'></script>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -68,9 +67,25 @@
         .page-btn.inactive { background-color: white; border: 1px solid #e2e8f0; color: #1e293b; }
         .night-mode .page-btn.inactive { background-color: #1e293b; border-color: #334155; color: #e2e8f0; }
         .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Landing Page Style */
+        #landing-page {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
     </style>
 </head>
 <body>
+
+    <div id="landing-page" class="fixed inset-0 z-[60] flex flex-col items-center justify-center p-6 text-center text-white">
+        <div class="bg-white/10 backdrop-blur-md p-10 rounded-3xl border border-white/20 shadow-2xl">
+            <h1 class="text-4xl font-bold mb-4">বাংলা চটি গল্প</h1>
+            <p class="text-lg opacity-90 mb-8">সেরা সব গল্পের ভাণ্ডারে আপনাকে স্বাগতম</p>
+            <button onclick="enterAppWithAd()" class="bg-white text-purple-700 px-12 py-4 rounded-full font-black text-xl shadow-xl hover:bg-gray-100 transition-all transform active:scale-95 flex items-center gap-3 mx-auto">
+                🚀 Start Reading
+            </button>
+            <p class="mt-6 text-xs opacity-60">গল্প পড়তে বাটনে ক্লিক করুন</p>
+        </div>
+    </div>
 
     <div id="loading-screen" class="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center">
         <div class="loader mb-4"></div>
@@ -159,7 +174,17 @@
                 <div id="read-meta-views" class="flex items-center gap-1 font-medium bg-gray-50 px-2 py-0.5 rounded">👁️ 0</div>
             </div>
             <div id="read-content" class="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium select-none" style="font-size: 18px;"></div>
-            <div class="mt-12 pt-6 border-t border-gray-100">
+            
+            <div class="mt-12 pt-6 border-t border-gray-200">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">মতামত জানান</h3>
+                <div class="space-y-4 mb-6">
+                    <textarea id="comment-input" rows="3" placeholder="আপনার মন্তব্য লিখুন..." class="w-full p-3 border rounded-xl text-black outline-none bg-gray-50 focus:border-blue-500 transition"></textarea>
+                    <button onclick="postComment()" class="bg-blue-600 text-white px-8 py-2.5 rounded-lg font-bold hover:bg-blue-700 transition shadow-md active:scale-95">কমেন্ট করুন</button>
+                </div>
+                <div id="comments-display" class="space-y-4">
+                    </div>
+            </div>
+            <div class="mt-8 pt-6 border-t border-gray-100">
                 <button onclick="shareStory()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3.5 rounded-xl font-bold shadow-lg flex justify-center items-center gap-2 transition-transform active:scale-95">
                     <span>🔗</span> শেয়ার করার জন্য লিংক তৈরি করুন
                 </button>
@@ -254,6 +279,7 @@
         const itemsPerPage = 10;
         let currentFilteredList = [];
         let isSignUpMode = false;
+        let commentUnsubscribe = null;
 
         document.addEventListener('DOMContentLoaded', init);
 
@@ -302,10 +328,29 @@
                 if (!initialUrlCheckDone && stories.length > 0) {
                     const params = new URLSearchParams(window.location.search);
                     const sharedId = params.get('id') || params.get('startapp');
-                    if(sharedId && stories.find(s => s.id === sharedId)) openStory(sharedId);
+                    if(sharedId && stories.find(s => s.id === sharedId)) {
+                        // If direct link, skip landing page
+                        document.getElementById('landing-page').classList.add('hidden');
+                        openStory(sharedId);
+                    }
                     initialUrlCheckDone = true;
                 }
             });
+        }
+
+        // --- New Landing Page Ad Logic ---
+        function enterAppWithAd() {
+            // Monetag Ad ট্রিগার করা
+            if (typeof show_10366901 === 'function') {
+                show_10366901('pop').then(() => {
+                    document.getElementById('landing-page').classList.add('hidden');
+                }).catch(() => {
+                    document.getElementById('landing-page').classList.add('hidden');
+                });
+            } else {
+                triggerDirectLinkAd();
+                document.getElementById('landing-page').classList.add('hidden');
+            }
         }
 
         function toggleAuthMode() {
@@ -475,10 +520,17 @@
             const contentEl = document.getElementById('read-content');
             const splitIdx = s.content.indexOf('\n', Math.floor(s.content.length / 2));
             contentEl.innerHTML = `<div>${s.content.substring(0, splitIdx)}</div>` + (appSettings.adLink ? `<div class="my-8 text-center"><a href="${appSettings.adLink}" target="_blank" class="bg-red-600 text-white px-6 py-3 rounded-full font-bold animate-pulse inline-block">🔞 ১৮+ ভিডিও দেখুন</a></div>` : "") + `<div>${s.content.substring(splitIdx)}</div>`;
+            
+            loadComments(id);
             showScreen('reading-screen');
         }
 
-        function closeReadingScreen() { showScreen('home-screen'); currentStoryId = null; window.history.pushState({}, '', window.location.pathname); }
+        function closeReadingScreen() { 
+            showScreen('home-screen'); 
+            currentStoryId = null; 
+            window.history.pushState({}, '', window.location.pathname);
+            if(commentUnsubscribe) { commentUnsubscribe(); commentUnsubscribe = null; }
+        }
 
         function changeFontSize(action) {
             currentFontSize = action === 'increase' ? Math.min(currentFontSize + 2, 34) : Math.max(currentFontSize - 2, 12);
@@ -487,33 +539,10 @@
         }
 
         function shareStory() {
-    // আপনার দেওয়া বটের তথ্য অনুযায়ী লিঙ্ক তৈরি করা হয়েছে
-    const botUsername = "Bangalchotigolpo_bot"; 
-    const appName = "Banglachotigolpo"; // মনে রাখবেন: BotFather-এ অ্যাপ সেটআপ করার সময় আপনি যে 'Short Name' দিয়েছেন সেটি এখানে হবে। সাধারণত এটি 'app' থাকে।
-    
-    // টেলিগ্রাম মিনি অ্যাপের ডাইরেক্ট লিঙ্ক (startapp প্যারামিটার সহ)
-    const telegramLink = `https://t.me/${botUsername}/${appName}?startapp=${currentStoryId}`;
-    
-    const storyTitle = document.getElementById('read-title').innerText;
-    const shareText = `🔥 গল্প: "${storyTitle}"\n\nসরাসরি টেলিগ্রামে পড়তে নিচের লিঙ্কে ক্লিক করুন:\n${telegramLink}`;
-
-    if (navigator.share) {
-        navigator.share({
-            title: storyTitle,
-            text: shareText
-        }).catch(() => {
-            // শেয়ার ক্যানসেল করলে বা ইরর হলে ক্লিপবোর্ডে কপি হবে
-            copyToClipboard(shareText);
-        });
-    } else {
-        copyToClipboard(shareText);
-    }
-}
-
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text);
-    alert("টেলিগ্রাম মিনি অ্যাপ লিঙ্ক কপি হয়েছে!");
-}
+            const text = `🔥 গল্প: "${document.getElementById('read-title').innerText}"\nপড়তে ক্লিক করুন: ${window.location.href}`;
+            if (navigator.share) navigator.share({title: 'গল্প', text}).catch(() => {});
+            else { navigator.clipboard.writeText(text); alert("লিংক কপি হয়েছে!"); }
+        }
 
         async function updateSettings() {
             const name = document.getElementById('set-app-name').value;
@@ -584,6 +613,38 @@ function copyToClipboard(text) {
         }
 
         function toggleNightMode() { document.body.classList.toggle('night-mode'); localStorage.setItem('nightMode', document.body.classList.contains('night-mode')); }
+
+        function loadComments(storyId) {
+            const display = document.getElementById('comments-display');
+            display.innerHTML = '<p class="text-gray-400 text-sm animate-pulse">লোড হচ্ছে...</p>';
+            if (commentUnsubscribe) commentUnsubscribe();
+            commentUnsubscribe = db.collection('stories').doc(storyId).collection('comments')
+                .orderBy('createdAt', 'desc')
+                .onSnapshot(snap => {
+                    if (snap.empty) { display.innerHTML = '<p class="text-gray-400 text-sm">কোনো মন্তব্য নেই।</p>'; return; }
+                    display.innerHTML = snap.docs.map(doc => {
+                        const data = doc.data();
+                        const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString('bn-BD') : 'কিছুক্ষণ আগে';
+                        return `<div class="bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm">
+                            <div class="flex justify-between items-center mb-2"><span class="font-bold text-sm text-blue-600">@${data.userName || 'ইউজার'}</span><span class="text-[10px] text-gray-400 font-medium">${date}</span></div>
+                            <p class="text-gray-700 text-[15px]">${data.text}</p></div>`;
+                    }).join('');
+                });
+        }
+
+        async function postComment() {
+            const input = document.getElementById('comment-input');
+            const text = input.value.trim();
+            if (!text) return;
+            if (!currentUser) { alert("কমেন্ট করতে লগইন করুন"); document.getElementById('auth-modal').classList.remove('hidden'); return; }
+            try {
+                await db.collection('stories').doc(currentStoryId).collection('comments').add({
+                    text: text, uid: currentUser.uid, userName: currentUser.email.split('@')[0],
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                input.value = "";
+            } catch (err) { alert("ভুল হয়েছে: " + err.message); }
+        }
     </script>
 </body>
 </html>
