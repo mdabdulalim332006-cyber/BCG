@@ -218,9 +218,11 @@
                 <p id="rating-msg" class="text-xs text-green-600 mt-2 hidden font-bold">রেটিং গ্রহণ করা হয়েছে! ধন্যবাদ।</p>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 mt-6">
-                <button onclick="shareStory('whatsapp')" class="bg-[#25D366] text-white py-3 rounded-xl font-bold shadow hover:opacity-90 flex items-center justify-center gap-2"><span>📱</span> WhatsApp</button>
-                <button onclick="shareStory('copy')" class="bg-blue-500 text-white py-3 rounded-xl font-bold shadow hover:bg-blue-600 flex items-center justify-center gap-2"><span>📋</span> Copy Link</button>
+            <!-- Share Button (WhatsApp removed, only Copy Link) -->
+            <div class="mt-6">
+                <button onclick="shareStory('copy')" class="w-full bg-blue-500 text-white py-3 rounded-xl font-bold shadow hover:bg-blue-600 flex items-center justify-center gap-2">
+                    <span>🔗</span> বন্ধুদের সাথে শেয়ার করুন (লিংক কপি)
+                </button>
             </div>
 
             <div class="mt-8">
@@ -348,24 +350,22 @@
         
         // Telegram Web App
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        tg.expand(); // Make it full screen
 
         document.addEventListener('DOMContentLoaded', () => {
             initApp();
             checkResume();
         });
 
-        // --- BACK BUTTON FIX & DEEP LINK ---
+        // --- BACK BUTTON FIX FOR TELEGRAM MINI APP ---
+        function handleTgBack() {
+            closeReadingScreen();
+        }
+
         window.addEventListener('popstate', function(event) {
             const params = new URLSearchParams(window.location.search);
-            const id = params.get('id');
-            if (!id) {
-                showScreen('home-screen');
-                stopTTS();
-                currentStoryId = null;
-            } else {
-                const s = stories.find(x => x.id === id);
-                if(s) openStory(id, 0, false);
+            if (!params.get('id')) {
+                closeReadingScreen();
             }
         });
 
@@ -413,9 +413,7 @@
                 applyFilters();
                 
                 // --- TELEGRAM DEEP LINK LOGIC ---
-                // 1. Check normal Web URL (for testing)
                 let startId = new URLSearchParams(window.location.search).get('id');
-                // 2. Check Telegram Start Param (Actual Mini App)
                 if(tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
                     startId = tg.initDataUnsafe.start_param;
                 }
@@ -519,6 +517,10 @@
                 currentStoryId = id;
                 if(shouldPushState) window.history.pushState({}, '', '?id='+id);
                 
+                // Show Telegram Back Button
+                tg.BackButton.show();
+                tg.BackButton.onClick(handleTgBack);
+
                 document.getElementById('read-title').innerText = s.title;
                 document.getElementById('read-meta-author').innerText = s.author;
                 document.getElementById('read-meta-cat').innerText = s.category;
@@ -541,6 +543,11 @@
             stopTTS();
             showScreen('home-screen');
             currentStoryId = null;
+            
+            // Hide Telegram Back Button
+            tg.BackButton.hide();
+            tg.BackButton.offClick(handleTgBack);
+
             const url = new URL(window.location);
             url.searchParams.delete('id');
             window.history.pushState({}, '', url);
@@ -556,25 +563,15 @@
         function updateTTSBtn() { const btn = document.getElementById('tts-btn'); btn.innerText = isSpeaking ? "🔇" : "🔊"; btn.className = isSpeaking ? "action-btn bg-red-100 text-red-600" : "action-btn bg-green-100 text-green-700"; }
         function changeFontSize(type) { currentFontSize = type === 'inc' ? currentFontSize + 2 : Math.max(12, currentFontSize - 2); document.getElementById('read-content').style.fontSize = currentFontSize + 'px'; document.getElementById('read-content').style.lineHeight = (currentFontSize + 12) + 'px'; }
 
-        // --- NEW SHARE LOGIC FOR TELEGRAM MINI APP ---
+        // --- UPDATED SHARE LOGIC ---
         function shareStory(type) {
-            // Generate Telegram Deep Link
-            // Format: https://t.me/BOT_USERNAME/SHORT_NAME?startapp=STORY_ID
             const botLink = `https://t.me/${BOT_USERNAME}/${SHORT_NAME}?startapp=${currentStoryId}`;
-            
-            const text = document.getElementById('read-title').innerText;
-            
-            if(type === 'whatsapp') {
-                window.open(`whatsapp://send?text=${encodeURIComponent(text + '\n' + botLink)}`);
-            } else {
-                // Copy Link
-                navigator.clipboard.writeText(botLink).then(() => {
-                    alert("লিংক কপি হয়েছে! (Telegram Link)");
-                }).catch(() => {
-                    // Fallback if clipboard fails (rare in modern browsers)
-                    prompt("লিংক কপি করুন:", botLink);
-                });
-            }
+            // Just copy for now, simplified
+            navigator.clipboard.writeText(botLink).then(() => {
+                alert("লিংক কপি হয়েছে!");
+            }).catch(() => {
+                prompt("লিংক কপি করুন:", botLink);
+            });
         }
 
         async function rateStory(stars) { if(!currentStoryId) return; await db.collection('stories').doc(currentStoryId).update({ ratingTotal: firebase.firestore.FieldValue.increment(stars), ratingCount: firebase.firestore.FieldValue.increment(1) }); document.getElementById('rating-msg').classList.remove('hidden'); }
