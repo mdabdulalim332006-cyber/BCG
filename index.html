@@ -103,13 +103,13 @@
     <div id="toast-container"></div>
 
     <!-- Loading Screen -->
-    <div id="loading-screen" class="fixed inset-0 z-[70] bg-white flex flex-col items-center justify-center hidden">
+    <div id="loading-screen" class="fixed inset-0 z-[70] bg-white flex flex-col items-center justify-center">
         <div class="loader mb-4"></div>
         <p id="loading-text" class="text-gray-500 animate-pulse">লোড হচ্ছে...</p>
     </div>
 
     <!-- Landing / Ad Page -->
-    <div id="landing-page" class="fixed inset-0 z-[60] flex flex-col items-center justify-center p-6 text-center text-white">
+    <div id="landing-page" class="fixed inset-0 z-[60] flex flex-col items-center justify-center p-6 text-center text-white hidden">
         <div class="bg-white/10 backdrop-blur-md p-10 rounded-3xl border border-white/20 shadow-2xl">
             <h1 class="text-4xl font-bold mb-4">বাংলা চটি গল্প</h1>
             <p class="text-lg opacity-90 mb-8">সেরা সব গল্পের ভাণ্ডারে আপনাকে স্বাগতম</p>
@@ -151,7 +151,7 @@
     </div>
 
     <!-- Home Screen -->
-    <div id="home-screen">
+    <div id="home-screen" class="hidden">
         <header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100 px-4 py-3 flex justify-between items-center shadow-sm">
             <h1 id="app-nav-title" class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 cursor-pointer" onclick="window.location.reload()">বাংলা চটি গল্প</h1>
             <div class="flex items-center gap-3">
@@ -176,7 +176,7 @@
                 <p class="text-sm text-gray-800 font-bold mb-3">প্রিয় পাঠক, আমাদের অ্যাপে আপনাকে স্বাগতম! ❤️</p>
                 <ul class="space-y-2 text-sm text-gray-700 leading-relaxed text-justify">
                     <li><span class="font-bold text-blue-800">১. সতর্কতা:</span> এই অ্যাপের বিষয়বস্তু শুধুমাত্র ১৮+ বয়স্কদের জন্য।</li>
-                    <li><span class="font-bold text-blue-800">২. সাপোর্ট:</span> অ্যাপটি ফ্রি রাখতে আমরা অ্যাড ব্যবহার করছি। গল্প পড়ার সময় বা ক্যাটাগরি চেঞ্জ করার সময় অ্যাড আসতে পারে।</li>
+                    <li><span class="font-bold text-blue-800">২. সাপোর্ট:</span> অ্যাপটি ফ্রি রাখতে আমরা অ্যাড ব্যবহার করছি। গল্প পড়ার সময় অ্যাড আসতে পারে।</li>
                     <li><span class="font-bold text-blue-800">৩. কপিরাইট:</span> অ্যাপ থেকে লেখা কপি করা বন্ধ রাখা হয়েছে।</li>
                     <li><span class="font-bold text-blue-800">৪. আপডেট:</span> নতুন গল্পের আপডেট পেতে <span class="font-bold text-blue-600">টেলিগ্রাম চ্যানেলে</span> জয়েন করুন।</li>
                 </ul>
@@ -185,9 +185,7 @@
             <!-- Search -->
             <input type="text" id="search-input" onkeyup="handleSearchDebounced()" placeholder="গল্প বা লেখক খুঁজুন..." class="w-full p-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:border-blue-500 text-gray-800 transition">
 
-            <div id="category-filters" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                <!-- Categories injected by JS -->
-            </div>
+            <div id="category-filters" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"></div>
         </div>
 
         <div id="stories-list" class="px-4 space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4"></div>
@@ -315,10 +313,14 @@
     </div>
 
     <script>
+        // --- Telegram Initialization ---
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
         // CONFIGURATION
         const ADMIN_EMAIL = "bcg332006@gmail.com"; 
         
-        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyA4gqOdRYydzPOR7a8brxBy2Bs49MtVqJw", 
             authDomain: "bangla-f8386.firebaseapp.com",
@@ -332,7 +334,7 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // State
+        // State Variables
         let appSettings = { name: "বাংলা চটি গল্প", adLink: "" };
         let categories = ['রোমান্টিক', 'পরকীয়া', 'ইনসেস্ট', 'ভাবি', 'লেসবিয়ান', 'ফ্যান্টাসি', 'অন্যান্য'];
         let stories = [];
@@ -347,7 +349,7 @@
         let commentUnsubscribe = null;
         let searchTimeout = null;
 
-        // TTS
+        // TTS & Audio
         let speechSynth = window.speechSynthesis;
         let speechUtterance = null;
         let isSpeaking = false;
@@ -359,6 +361,8 @@
         function init() {
             if(!localStorage.getItem('age_verified')) {
                 document.getElementById('age-gate').classList.remove('hidden');
+            } else {
+                document.getElementById('age-gate').classList.add('hidden');
             }
 
             if(localStorage.getItem('nightMode') === 'true') {
@@ -386,6 +390,7 @@
                         }
                         startHeartbeat(user.uid);
                     } catch(e) {}
+                    document.getElementById('auth-modal').classList.add('hidden');
                     authBtn.innerText = "🚪"; 
                     if(user.email === ADMIN_EMAIL) adminBtn.classList.remove('hidden');
                 } else {
@@ -402,6 +407,26 @@
             db.collection('stories').orderBy('updatedAt', 'desc').onSnapshot(snap => {
                 stories = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 applyFilters(); 
+                
+                if (!initialUrlCheckDone && stories.length > 0) {
+                    const params = new URLSearchParams(window.location.search);
+                    let sharedId = params.get('id');
+                    
+                    // Telegram Deep Linking logic
+                    if (tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+                        sharedId = tg.initDataUnsafe.start_param;
+                    }
+                    
+                    if(sharedId && stories.find(s => s.id === sharedId)) {
+                        document.getElementById('landing-page').classList.add('hidden');
+                        document.getElementById('loading-screen').classList.add('hidden');
+                        openStory(sharedId);
+                    } else {
+                        document.getElementById('loading-screen').classList.add('hidden');
+                        document.getElementById('landing-page').classList.remove('hidden');
+                    }
+                    initialUrlCheckDone = true;
+                }
             });
 
             window.addEventListener('scroll', () => {
@@ -412,7 +437,7 @@
             renderCategoriesUI();
         }
 
-        // Ad Trigger
+        // Ad Logic
         function runWithAd(callback) {
             const loader = document.getElementById('loading-screen');
             if (typeof show_10366901 === 'function') {
@@ -429,11 +454,21 @@
             }
         }
 
-        function enterAppWithAd() { runWithAd(() => { document.getElementById('landing-page').classList.add('hidden'); }); }
-        function openTelegramWithAd() { runWithAd(() => { window.open('https://t.me/banglachotigolpoBCG', '_blank'); }); }
+        function enterAppWithAd() {
+            runWithAd(() => {
+                document.getElementById('landing-page').classList.add('hidden');
+                document.getElementById('home-screen').classList.remove('hidden');
+            });
+        }
+        
+        function openTelegramWithAd() {
+            runWithAd(() => {
+                tg.openTelegramLink('https://t.me/banglachotigolpoBCG');
+            });
+        }
 
         function acceptAgeGate() { localStorage.setItem('age_verified', 'true'); document.getElementById('age-gate').classList.add('hidden'); }
-        function updateAppMeta() { document.getElementById('app-title-tag').innerText = appSettings.name; document.getElementById('app-nav-title').innerText = appSettings.name; document.getElementById('set-app-name').value = appSettings.name || ""; }
+        function updateAppMeta() { document.getElementById('app-title-tag').innerText = appSettings.name; document.getElementById('app-nav-title').innerText = appSettings.name; document.getElementById('set-app-name').value = appSettings.name || ""; document.getElementById('set-ad-link').value = appSettings.adLink || ""; }
         
         function handleAuth(e) {
             e.preventDefault();
@@ -442,11 +477,11 @@
             if (isSignUpMode) {
                 auth.createUserWithEmailAndPassword(email, pass).then(cred => {
                     db.collection('users').doc(cred.user.uid).set({ email, uid: cred.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp(), isBanned: false });
-                    document.getElementById('auth-modal').classList.add('hidden');
+                    showToast("স্বাগতম!", "success"); document.getElementById('auth-modal').classList.add('hidden');
                 }).catch(e => alert(e.message));
             } else {
                 auth.signInWithEmailAndPassword(email, pass).then(() => {
-                    document.getElementById('auth-modal').classList.add('hidden');
+                    showToast("লগইন সফল!", "success"); document.getElementById('auth-modal').classList.add('hidden');
                 }).catch(e => alert(e.message));
             }
         }
@@ -506,6 +541,10 @@
             const pageData = currentFilteredList.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
             list.innerHTML = pageData.map(s => `
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 active:scale-[0.98] transition-transform cursor-pointer" onclick="openStory('${s.id}')">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full">${s.category || 'অন্যান্য'}</span>
+                        <span class="text-[10px] text-gray-400">👁️ ${s.views || 0}</span>
+                    </div>
                     <h3 class="font-bold text-lg leading-tight mb-2 text-gray-800">${s.title}</h3>
                     <p class="text-gray-500 text-sm line-clamp-2">${s.summary || 'বিস্তারিত...'}</p>
                 </div>
@@ -539,13 +578,25 @@
                 document.getElementById('read-title').innerText = s.title;
                 document.getElementById('read-meta-author').innerText = `লেখক: ${s.author}`;
                 document.getElementById('read-meta-cat').innerText = s.category;
+                document.getElementById('read-meta-views').innerText = `👁️ ${s.views ? s.views + 1 : 1}`;
                 document.getElementById('read-content').innerHTML = s.content;
                 loadComments(id);
                 showScreen('reading-screen');
+                window.scrollTo(0,0);
             });
         }
 
         function closeReadingScreen() { stopTTS(); showScreen('home-screen'); currentStoryId = null; }
+
+        function getFavorites() { return JSON.parse(localStorage.getItem('favStories')) || []; }
+        function toggleFavorite(e, id) {
+            e.stopPropagation(); 
+            let favs = getFavorites();
+            favs = favs.includes(id) ? favs.filter(f => f !== id) : [...favs, id];
+            localStorage.setItem('favStories', JSON.stringify(favs));
+            if(currentStoryId) document.getElementById('read-fav-btn').innerText = favs.includes(currentStoryId) ? '❤️' : '🤍';
+        }
+        function toggleReadScreenFavorite() { if(currentStoryId) toggleFavorite({stopPropagation:()=>{}}, currentStoryId); }
 
         function toggleTTS() {
             if(isSpeaking) { stopTTS(); return; }
@@ -572,7 +623,7 @@
 
         async function postComment() {
             const input = document.getElementById('comment-input');
-            if (!currentUser) { alert("লগইন করুন"); return; }
+            if (!currentUser) { showToast("লগইন করুন", "error"); return; }
             await db.collection('stories').doc(currentStoryId).collection('comments').add({ text: input.value, userName: currentUser.email.split('@')[0], createdAt: firebase.firestore.FieldValue.serverTimestamp() });
             input.value = "";
         }
@@ -582,9 +633,10 @@
             document.getElementById(id).classList.remove('hidden'); 
         }
 
-        function showToast(msg) { 
+        function showToast(msg, type='info') { 
+            const container = document.getElementById('toast-container'); 
             const toast = document.createElement('div'); toast.className = 'toast-msg'; toast.innerText = msg;
-            document.getElementById('toast-container').appendChild(toast); setTimeout(() => toast.remove(), 3000); 
+            container.appendChild(toast); setTimeout(() => toast.remove(), 3000); 
         }
 
         function updateReadingProgress() { 
@@ -592,20 +644,22 @@
             const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
             document.getElementById("reading-progress-bar").style.width = ((winScroll / height) * 100) + "%";
         }
-        
         function startHeartbeat(uid) { heartbeatInterval = setInterval(() => { db.collection('users').doc(uid).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() }); }, 300000); }
         function stopHeartbeat() { clearInterval(heartbeatInterval); }
 
-        // Admin functions simplified
+        // Admin functions
         async function renderAdminAnalytics() {
             const usersSnap = await db.collection('users').get();
             document.getElementById('stat-total-users').innerText = usersSnap.size;
         }
-
         function renderAdminListUI() {
-            document.getElementById('admin-story-list').innerHTML = stories.map(s => `<div class="p-2 border-b flex justify-between"><span>${s.title}</span><button onclick="editStory('${s.id}')" class="text-blue-600">Edit</button></div>`).join('');
+            document.getElementById('admin-story-list').innerHTML = stories.map(s => `<div class="p-3 border flex justify-between bg-white rounded"><span>${s.title}</span><button onclick="editStory('${s.id}')" class="text-blue-600">Edit</button></div>`).join('');
         }
-
+        async function updateSettings() {
+            const name = document.getElementById('set-app-name').value;
+            await db.collection('config').doc('app_settings').set({ name }, { merge: true });
+            alert("Saved!");
+        }
         document.getElementById('story-form').onsubmit = async (e) => {
             e.preventDefault();
             const id = document.getElementById('edit-id').value;
@@ -613,6 +667,7 @@
                 title: document.getElementById('story-title').value,
                 author: document.getElementById('story-author').value,
                 category: document.getElementById('story-category-select').value,
+                summary: document.getElementById('story-summary').value,
                 content: document.getElementById('story-content').value,
                 status: document.getElementById('story-status').value,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -620,7 +675,6 @@
             id ? await db.collection('stories').doc(id).update(data) : await db.collection('stories').add(data);
             resetForm();
         };
-
         function resetForm() { document.getElementById('story-form').reset(); document.getElementById('edit-id').value = ""; }
         function editStory(id) {
             const s = stories.find(x => x.id === id);
@@ -628,6 +682,7 @@
             document.getElementById('story-title').value = s.title;
             document.getElementById('story-author').value = s.author;
             document.getElementById('story-content').value = s.content;
+            window.scrollTo(0,0);
         }
     </script>
 </body>
