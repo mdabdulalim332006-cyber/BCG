@@ -7,6 +7,9 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- TELEGRAM WEB APP SDK (Must needed for Mini App) -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
     <!-- AD SCRIPT -->
     <script src='//libtl.com/sdk.js' data-zone='10366901' data-sdk='show_10366901'></script>
 
@@ -23,7 +26,7 @@
             color: #1e293b;
             transition: background-color 0.3s, color 0.3s;
             -webkit-tap-highlight-color: transparent;
-            user-select: none; /* Copy Protection */
+            user-select: none;
             -webkit-user-select: none;
         }
 
@@ -56,16 +59,14 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
-        
-        /* Custom Button Styles */
         .action-btn { @apply p-2 rounded-full transition active:scale-95 shadow-sm; }
         
         #landing-page { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
     </style>
 </head>
-<body oncontextmenu="return false;"> <!-- Right Click Blocked -->
+<body oncontextmenu="return false;">
 
-    <!-- Landing Page / Welcome Screen -->
+    <!-- Landing Page -->
     <div id="landing-page" class="fixed inset-0 z-[60] flex flex-col items-center justify-center p-6 text-center text-white">
         <div class="bg-white/10 backdrop-blur-md p-10 rounded-3xl border border-white/20 shadow-2xl relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-pink-500 to-yellow-500"></div>
@@ -119,7 +120,7 @@
         </div>
     </div>
 
-    <!-- Main Home Screen -->
+    <!-- Home Screen -->
     <div id="home-screen">
         <header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100 px-4 py-3 flex justify-between items-center shadow-sm">
             <h1 id="app-nav-title" class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 cursor-pointer" onclick="window.location.reload()">বাংলা চটি গল্প</h1>
@@ -133,13 +134,12 @@
         </header>
 
         <div class="p-4 space-y-4">
-            <!-- Telegram Section -->
             <button onclick="window.open('https://t.me/banglachotigolpoBCG', '_blank')" class="w-full bg-[#0088cc] text-white py-3 rounded-xl font-bold shadow-md hover:bg-[#0077b5] transition flex items-center justify-center gap-2 animate-bounce-slow">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.46-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.008-1.252-.241-1.865-.44-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.477-1.635.099-.002.321.023.465.141.119.098.152.228.166.331.016.117.025.337.014.566z"/></svg>
                 টেলিগ্রাম চ্যানেলে জয়েন করুন
             </button>
 
-            <!-- IMPORTANT NOTICE (Added as requested) -->
+            <!-- IMPORTANT NOTICE -->
             <div class="bg-red-50 border border-red-200 p-4 rounded-xl shadow-sm">
                 <h3 class="font-bold text-red-700 mb-2 flex items-center gap-2">📢 জরুরি নোটিশ</h3>
                 <ul class="text-sm text-gray-700 space-y-2 list-none">
@@ -152,15 +152,13 @@
                 <p class="mt-3 text-xs text-center text-gray-500 font-bold">আমাদের সাথে থাকার জন্য ধন্যবাদ!</p>
             </div>
 
-            <!-- Resume Reading Button (Hidden by default) -->
+            <!-- Resume Reading -->
             <button id="resume-btn" onclick="resumeReading()" class="hidden w-full bg-purple-100 text-purple-700 border border-purple-200 py-3 rounded-xl font-bold flex items-center justify-center gap-2">
                 🔖 পড়া চালিয়ে যান (Resume)
             </button>
 
-            <!-- Search -->
             <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="গল্প বা লেখক খুঁজুন..." class="w-full p-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:border-blue-500 text-gray-800 transition">
 
-            <!-- Filters -->
             <div id="category-filters" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"></div>
         </div>
 
@@ -174,7 +172,6 @@
 
         <div id="pagination-container" class="py-8 flex justify-center items-center gap-2 flex-wrap px-4 pb-20"></div>
 
-        <!-- Admin Button -->
         <button id="admin-indicator" onclick="showScreen('admin-panel'); renderAdminStats();" class="hidden fixed bottom-6 right-6 bg-purple-600 text-white p-4 rounded-full shadow-lg font-bold z-30 hover:scale-105 transition">
             ⚙️ প্যানেল
         </button>
@@ -209,7 +206,6 @@
 
             <div id="read-content" class="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium" style="font-size: 18px;"></div>
 
-            <!-- Rating Section -->
             <div class="mt-8 py-4 border-t border-b border-gray-100 text-center bg-gray-50 rounded-xl">
                 <p class="mb-2 font-bold text-gray-700">গল্পটি রেটিং দিন</p>
                 <div class="flex justify-center gap-3 text-3xl">
@@ -222,17 +218,11 @@
                 <p id="rating-msg" class="text-xs text-green-600 mt-2 hidden font-bold">রেটিং গ্রহণ করা হয়েছে! ধন্যবাদ।</p>
             </div>
 
-            <!-- Share Buttons -->
             <div class="grid grid-cols-2 gap-4 mt-6">
-                <button onclick="shareStory('whatsapp')" class="bg-[#25D366] text-white py-3 rounded-xl font-bold shadow hover:opacity-90 flex items-center justify-center gap-2">
-                    <span>📱</span> WhatsApp
-                </button>
-                <button onclick="shareStory('copy')" class="bg-blue-500 text-white py-3 rounded-xl font-bold shadow hover:bg-blue-600 flex items-center justify-center gap-2">
-                    <span>📋</span> Copy Link
-                </button>
+                <button onclick="shareStory('whatsapp')" class="bg-[#25D366] text-white py-3 rounded-xl font-bold shadow hover:opacity-90 flex items-center justify-center gap-2"><span>📱</span> WhatsApp</button>
+                <button onclick="shareStory('copy')" class="bg-blue-500 text-white py-3 rounded-xl font-bold shadow hover:bg-blue-600 flex items-center justify-center gap-2"><span>📋</span> Copy Link</button>
             </div>
 
-            <!-- Comments -->
             <div class="mt-8">
                 <h3 class="text-xl font-bold mb-4 text-gray-800">মতামত (Comments)</h3>
                 <div class="space-y-3 mb-6">
@@ -242,7 +232,6 @@
                 <div id="comments-display" class="space-y-4"></div>
             </div>
 
-            <!-- Related Stories -->
             <div class="mt-10 pt-6 border-t-2 border-dashed border-gray-200">
                 <h3 class="text-lg font-bold mb-4 text-gray-600">আরও পড়ুন</h3>
                 <div id="related-stories-list" class="grid gap-3"></div>
@@ -261,23 +250,12 @@
         </div>
 
         <div class="p-4 max-w-4xl mx-auto space-y-6">
-            <!-- Live Analytics -->
             <div class="grid grid-cols-3 gap-4 text-center">
-                <div class="bg-blue-100 p-4 rounded-xl text-blue-800">
-                    <h3 class="text-2xl font-bold" id="stat-users">0</h3>
-                    <p class="text-xs">মোট ইউজার</p>
-                </div>
-                <div class="bg-green-100 p-4 rounded-xl text-green-800">
-                    <h3 class="text-2xl font-bold" id="stat-stories">0</h3>
-                    <p class="text-xs">মোট গল্প</p>
-                </div>
-                <div class="bg-purple-100 p-4 rounded-xl text-purple-800">
-                    <h3 class="text-2xl font-bold" id="stat-views">0</h3>
-                    <p class="text-xs">মোট ভিউ</p>
-                </div>
+                <div class="bg-blue-100 p-4 rounded-xl text-blue-800"><h3 class="text-2xl font-bold" id="stat-users">0</h3><p class="text-xs">মোট ইউজার</p></div>
+                <div class="bg-green-100 p-4 rounded-xl text-green-800"><h3 class="text-2xl font-bold" id="stat-stories">0</h3><p class="text-xs">মোট গল্প</p></div>
+                <div class="bg-purple-100 p-4 rounded-xl text-purple-800"><h3 class="text-2xl font-bold" id="stat-views">0</h3><p class="text-xs">মোট ভিউ</p></div>
             </div>
 
-            <!-- User Management -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <h3 class="font-bold border-b pb-2 mb-4">👤 ইউজার ম্যানেজমেন্ট & ব্যান</h3>
                 <div class="flex gap-2 mb-2">
@@ -287,7 +265,6 @@
                 <p class="text-xs text-gray-500">ব্যান করলে ইউজার আর অ্যাপে ঢুকতে পারবে না।</p>
             </div>
 
-            <!-- Settings -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <h3 class="font-bold border-b pb-2 mb-4">⚙️ সেটিংস & নোটিফিকেশন</h3>
                 <input id="set-app-name" type="text" placeholder="অ্যাপের নাম" class="w-full p-2 border rounded mb-2">
@@ -295,7 +272,6 @@
                 <button onclick="updateSettings()" class="bg-gray-800 text-white px-6 py-2 rounded text-sm w-full">সেভ করুন</button>
             </div>
 
-            <!-- Category -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <h3 class="font-bold border-b pb-2 mb-4">📂 ক্যাটাগরি</h3>
                 <div class="flex gap-2 mb-4">
@@ -305,7 +281,6 @@
                 <div id="admin-cat-list" class="flex flex-wrap gap-2"></div>
             </div>
 
-            <!-- Write Story -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <div class="flex justify-between mb-4 border-b pb-2">
                     <h3 id="form-mode-title" class="font-bold">📝 গল্প লিখুন</h3>
@@ -328,7 +303,6 @@
                 </form>
             </div>
 
-            <!-- Story List -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <h3 class="font-bold border-b pb-2 mb-4">সব গল্প</h3>
                 <div id="admin-story-list" class="space-y-2"></div>
@@ -339,6 +313,10 @@
     <script>
         const ADMIN_EMAIL = "bcg332006@gmail.com";
         const DEFAULT_CATS = ['রোমান্টিক', 'পরকীয়া', 'ইনসেস্ট', 'ভাবি', 'লেসবিয়ান', 'ফ্যান্টাসি', 'অন্যান্য', 'মা ছেলে'];
+        
+        // --- YOUR BOT INFO ---
+        const BOT_USERNAME = "Bangalchotigolpo_bot";
+        const SHORT_NAME = "bcg";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA4gqOdRYydzPOR7a8brxBy2Bs49MtVqJw",
@@ -367,34 +345,42 @@
         let speechSynth = window.speechSynthesis;
         let speechObj = null;
         let isSpeaking = false;
-        let lastScrollPos = 0;
+        
+        // Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-        // Init
         document.addEventListener('DOMContentLoaded', () => {
             initApp();
             checkResume();
+        });
+
+        // --- BACK BUTTON FIX & DEEP LINK ---
+        window.addEventListener('popstate', function(event) {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            if (!id) {
+                showScreen('home-screen');
+                stopTTS();
+                currentStoryId = null;
+            } else {
+                const s = stories.find(x => x.id === id);
+                if(s) openStory(id, 0, false);
+            }
         });
 
         function initApp() {
             if(!localStorage.getItem('age_verified')) document.getElementById('age-gate').classList.remove('hidden');
             if(localStorage.getItem('nightMode') === 'true') document.body.classList.add('night-mode');
             
-            // Check Offline Cache
             const cached = localStorage.getItem('cachedStories');
-            if(cached) {
-                stories = JSON.parse(cached);
-                applyFilters();
-            }
+            if(cached) { stories = JSON.parse(cached); applyFilters(); }
 
             auth.onAuthStateChanged(async user => {
                 currentUser = user;
                 if(user) {
                     const userDoc = await db.collection('users').doc(user.uid).get();
-                    if(userDoc.exists && userDoc.data().isBanned) {
-                        auth.signOut();
-                        alert("আপনাকে ব্যান করা হয়েছে।");
-                        return;
-                    }
+                    if(userDoc.exists && userDoc.data().isBanned) { auth.signOut(); alert("ব্যান করা হয়েছে।"); return; }
                     document.getElementById('auth-modal').classList.add('hidden');
                     document.getElementById('admin-indicator').classList.toggle('hidden', user.email !== ADMIN_EMAIL);
                 } else {
@@ -403,7 +389,6 @@
                 }
             });
 
-            // Load Settings & Notifications
             db.collection('config').doc('app_settings').onSnapshot(doc => {
                 if(doc.exists) {
                     appSettings = doc.data();
@@ -422,33 +407,31 @@
                 renderCategoriesUI();
             });
 
-            // Live Update & Cache
             db.collection('stories').orderBy('updatedAt', 'desc').onSnapshot(snap => {
                 stories = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                localStorage.setItem('cachedStories', JSON.stringify(stories)); // Offline Cache
+                localStorage.setItem('cachedStories', JSON.stringify(stories));
                 applyFilters();
                 
-                const params = new URLSearchParams(window.location.search);
-                const sharedId = params.get('id');
-                if(sharedId && stories.find(s => s.id === sharedId) && !currentStoryId) {
+                // --- TELEGRAM DEEP LINK LOGIC ---
+                // 1. Check normal Web URL (for testing)
+                let startId = new URLSearchParams(window.location.search).get('id');
+                // 2. Check Telegram Start Param (Actual Mini App)
+                if(tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+                    startId = tg.initDataUnsafe.start_param;
+                }
+
+                if(startId && stories.find(s => s.id === startId) && !currentStoryId) {
                     document.getElementById('landing-page').classList.add('hidden');
-                    openStory(sharedId);
+                    openStory(startId, 0, false);
                 }
             });
         }
 
-        // --- Ad Logic ---
         function showRewardedAd(callback) {
-            if (typeof show_10366901 === 'function') {
-                show_10366901().then(callback).catch(callback);
-            } else { callback(); }
+            if (typeof show_10366901 === 'function') { show_10366901().then(callback).catch(callback); } else { callback(); }
         }
+        function enterAppWithAd() { showRewardedAd(() => { document.getElementById('landing-page').classList.add('hidden'); }); }
 
-        function enterAppWithAd() {
-            showRewardedAd(() => { document.getElementById('landing-page').classList.add('hidden'); });
-        }
-
-        // --- Auth & User ---
         async function handleAuth(e) {
             e.preventDefault();
             const email = document.getElementById('auth-email').value;
@@ -458,9 +441,7 @@
                     const cred = await auth.createUserWithEmailAndPassword(email, pass);
                     await db.collection('users').doc(cred.user.uid).set({ email, createdAt: firebase.firestore.FieldValue.serverTimestamp(), isBanned: false });
                     alert("স্বাগতম!");
-                } else {
-                    await auth.signInWithEmailAndPassword(email, pass);
-                }
+                } else { await auth.signInWithEmailAndPassword(email, pass); }
             } catch(err) { alert(err.message); }
         }
 
@@ -471,19 +452,9 @@
             document.getElementById('auth-toggle-link').innerText = isSignUpMode ? "লগইন করুন" : "নতুন অ্যাকাউন্ট";
         }
 
-        // --- Core UI ---
         function acceptAgeGate() { localStorage.setItem('age_verified', 'true'); document.getElementById('age-gate').classList.add('hidden'); }
-        
-        function toggleNightMode() {
-            document.body.classList.toggle('night-mode');
-            document.body.classList.remove('sepia-mode');
-            localStorage.setItem('nightMode', document.body.classList.contains('night-mode'));
-        }
-
-        function toggleSepia() {
-            document.body.classList.toggle('sepia-mode');
-            document.body.classList.remove('night-mode');
-        }
+        function toggleNightMode() { document.body.classList.toggle('night-mode'); document.body.classList.remove('sepia-mode'); localStorage.setItem('nightMode', document.body.classList.contains('night-mode')); }
+        function toggleSepia() { document.body.classList.toggle('sepia-mode'); document.body.classList.remove('night-mode'); }
 
         function renderCategoriesUI() {
             document.getElementById('category-filters').innerHTML = `
@@ -499,10 +470,8 @@
             let q = document.getElementById('search-input').value.toLowerCase();
             let cat = catOverride || 'ALL';
             let filtered = stories.filter(s => s.status === 'Published');
-            
             if(cat === 'FAVORITES') filtered = filtered.filter(s => (JSON.parse(localStorage.getItem('favStories'))||[]).includes(s.id));
             else if(cat !== 'ALL') filtered = filtered.filter(s => s.category === cat);
-            
             if(q) filtered = filtered.filter(s => s.title.toLowerCase().includes(q) || s.author.toLowerCase().includes(q));
             currentFilteredList = filtered;
             renderPaginatedList();
@@ -520,58 +489,35 @@
         function renderPaginatedList() {
             const list = document.getElementById('stories-list');
             const noData = document.getElementById('no-data-msg');
-            
-            if(currentFilteredList.length === 0) {
-                list.innerHTML = ''; noData.classList.remove('hidden'); 
-                document.getElementById('pagination-container').innerHTML = '';
-                return;
-            }
+            if(currentFilteredList.length === 0) { list.innerHTML = ''; noData.classList.remove('hidden'); document.getElementById('pagination-container').innerHTML = ''; return; }
             noData.classList.add('hidden');
-            
             const data = currentFilteredList.slice((currentPage-1)*itemsPerPage, currentPage*itemsPerPage);
             const favs = JSON.parse(localStorage.getItem('favStories')) || [];
-
             list.innerHTML = data.map(s => `
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 relative active:scale-[0.98] transition cursor-pointer" onclick="openStory('${s.id}')">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full">${s.category||'অন্যান্য'}</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-gray-400">★ ${s.ratingTotal ? (s.ratingTotal/s.ratingCount).toFixed(1) : '0'}</span>
-                            <span class="text-xs text-gray-400">👁️ ${s.views||0}</span>
-                            <button onclick="toggleFavorite(event, '${s.id}')" class="text-lg z-10">${favs.includes(s.id)?'❤️':'🤍'}</button>
-                        </div>
+                        <div class="flex items-center gap-2"><span class="text-xs text-gray-400">★ ${s.ratingTotal ? (s.ratingTotal/s.ratingCount).toFixed(1) : '0'}</span><span class="text-xs text-gray-400">👁️ ${s.views||0}</span><button onclick="toggleFavorite(event, '${s.id}')" class="text-lg z-10">${favs.includes(s.id)?'❤️':'🤍'}</button></div>
                     </div>
                     <h3 class="font-bold text-lg mb-1">${s.title}</h3>
                     <p class="text-gray-500 text-sm line-clamp-2">${s.summary||'পড়তে ক্লিক করুন...'}</p>
-                </div>
-            `).join('');
-            
+                </div>`).join('');
             const total = Math.ceil(currentFilteredList.length/itemsPerPage);
             let html = '';
             for(let i=1; i<=total; i++) html += `<button onclick="goToPage(${i})" class="page-btn ${i===currentPage?'active bg-blue-600 text-white':'inactive bg-white border'} w-8 h-8 rounded-lg">${i}</button>`;
             document.getElementById('pagination-container').innerHTML = html;
         }
 
-        function goToPage(p) {
-            showRewardedAd(() => { currentPage = p; renderPaginatedList(); window.scrollTo(0,0); });
-        }
+        function goToPage(p) { showRewardedAd(() => { currentPage = p; renderPaginatedList(); window.scrollTo(0,0); }); }
+        function toggleFavorite(e, id) { e.stopPropagation(); let favs = JSON.parse(localStorage.getItem('favStories')) || []; favs = favs.includes(id) ? favs.filter(f => f!==id) : [...favs, id]; localStorage.setItem('favStories', JSON.stringify(favs)); applyFilters(); }
 
-        function toggleFavorite(e, id) {
-            e.stopPropagation();
-            let favs = JSON.parse(localStorage.getItem('favStories')) || [];
-            favs = favs.includes(id) ? favs.filter(f => f!==id) : [...favs, id];
-            localStorage.setItem('favStories', JSON.stringify(favs));
-            applyFilters();
-        }
-
-        // --- Reading & Story Logic ---
-        function openStory(id, scrollPos = 0) {
+        function openStory(id, scrollPos = 0, shouldPushState = true) {
             const s = stories.find(x => x.id === id);
             if(!s) return;
 
             showRewardedAd(() => {
                 currentStoryId = id;
-                window.history.pushState({}, '', '?id='+id);
+                if(shouldPushState) window.history.pushState({}, '', '?id='+id);
                 
                 document.getElementById('read-title').innerText = s.title;
                 document.getElementById('read-meta-author').innerText = s.author;
@@ -579,27 +525,15 @@
                 document.getElementById('read-meta-views').innerText = '👁️ ' + (s.views ? s.views + 1 : 1);
                 document.getElementById('read-content').innerText = s.content;
                 
-                if(!currentUser || currentUser.email !== ADMIN_EMAIL) {
-                    db.collection('stories').doc(id).update({ views: firebase.firestore.FieldValue.increment(1) });
-                }
-
+                if(!currentUser || currentUser.email !== ADMIN_EMAIL) { db.collection('stories').doc(id).update({ views: firebase.firestore.FieldValue.increment(1) }); }
                 const favs = JSON.parse(localStorage.getItem('favStories')) || [];
                 document.getElementById('read-fav-btn').innerText = favs.includes(id) ? '❤️' : '🤍';
-
                 loadRelatedStories(s.category, id);
                 loadComments(id);
                 showScreen('reading-screen');
                 stopTTS();
-
-                // Scroll Handling for Bookmark
                 setTimeout(() => window.scrollTo(0, scrollPos), 100);
-                
-                // Save progress
-                window.onscroll = () => {
-                    localStorage.setItem('lastReadId', id);
-                    localStorage.setItem('lastReadScroll', window.scrollY);
-                    checkResume();
-                };
+                window.onscroll = () => { localStorage.setItem('lastReadId', id); localStorage.setItem('lastReadScroll', window.scrollY); checkResume(); };
             });
         }
 
@@ -607,80 +541,49 @@
             stopTTS();
             showScreen('home-screen');
             currentStoryId = null;
-            window.history.pushState({}, '', window.location.pathname);
-            window.onscroll = null; // stop saving scroll
+            const url = new URL(window.location);
+            url.searchParams.delete('id');
+            window.history.pushState({}, '', url);
+            window.onscroll = null;
         }
 
-        function checkResume() {
-            const lastId = localStorage.getItem('lastReadId');
-            if(lastId) document.getElementById('resume-btn').classList.remove('hidden');
-        }
-
-        function resumeReading() {
-            const id = localStorage.getItem('lastReadId');
-            const pos = parseInt(localStorage.getItem('lastReadScroll') || '0');
-            if(id) openStory(id, pos);
-        }
-
-        function manualBookmark() {
-            localStorage.setItem('lastReadId', currentStoryId);
-            localStorage.setItem('lastReadScroll', window.scrollY);
-            alert("বুকমার্ক সেভ হয়েছে!");
-            checkResume();
-        }
-
-        function toggleTTS() {
-            if(isSpeaking) { stopTTS(); return; }
-            const text = document.getElementById('read-content').innerText;
-            speechObj = new SpeechSynthesisUtterance(text);
-            speechObj.lang = 'bn-BD'; 
-            speechObj.rate = 0.9;
-            speechObj.onend = () => { isSpeaking = false; updateTTSBtn(); };
-            speechSynth.speak(speechObj);
-            isSpeaking = true;
-            updateTTSBtn();
-        }
-
+        function checkResume() { const lastId = localStorage.getItem('lastReadId'); if(lastId) document.getElementById('resume-btn').classList.remove('hidden'); }
+        function resumeReading() { const id = localStorage.getItem('lastReadId'); const pos = parseInt(localStorage.getItem('lastReadScroll') || '0'); if(id) openStory(id, pos); }
+        function manualBookmark() { localStorage.setItem('lastReadId', currentStoryId); localStorage.setItem('lastReadScroll', window.scrollY); alert("বুকমার্ক সেভ হয়েছে!"); checkResume(); }
+        
+        function toggleTTS() { if(isSpeaking) { stopTTS(); return; } const text = document.getElementById('read-content').innerText; speechObj = new SpeechSynthesisUtterance(text); speechObj.lang = 'bn-BD'; speechObj.rate = 0.9; speechObj.onend = () => { isSpeaking = false; updateTTSBtn(); }; speechSynth.speak(speechObj); isSpeaking = true; updateTTSBtn(); }
         function stopTTS() { speechSynth.cancel(); isSpeaking = false; updateTTSBtn(); }
-        function updateTTSBtn() { 
-            const btn = document.getElementById('tts-btn'); 
-            btn.innerText = isSpeaking ? "🔇" : "🔊"; 
-            btn.className = isSpeaking ? "action-btn bg-red-100 text-red-600" : "action-btn bg-green-100 text-green-700";
-        }
+        function updateTTSBtn() { const btn = document.getElementById('tts-btn'); btn.innerText = isSpeaking ? "🔇" : "🔊"; btn.className = isSpeaking ? "action-btn bg-red-100 text-red-600" : "action-btn bg-green-100 text-green-700"; }
+        function changeFontSize(type) { currentFontSize = type === 'inc' ? currentFontSize + 2 : Math.max(12, currentFontSize - 2); document.getElementById('read-content').style.fontSize = currentFontSize + 'px'; document.getElementById('read-content').style.lineHeight = (currentFontSize + 12) + 'px'; }
 
-        function changeFontSize(type) {
-            currentFontSize = type === 'inc' ? currentFontSize + 2 : Math.max(12, currentFontSize - 2);
-            document.getElementById('read-content').style.fontSize = currentFontSize + 'px';
-            document.getElementById('read-content').style.lineHeight = (currentFontSize + 12) + 'px';
-        }
-
+        // --- NEW SHARE LOGIC FOR TELEGRAM MINI APP ---
         function shareStory(type) {
-            const url = window.location.href;
+            // Generate Telegram Deep Link
+            // Format: https://t.me/BOT_USERNAME/SHORT_NAME?startapp=STORY_ID
+            const botLink = `https://t.me/${BOT_USERNAME}/${SHORT_NAME}?startapp=${currentStoryId}`;
+            
             const text = document.getElementById('read-title').innerText;
-            if(type === 'whatsapp') window.open(`whatsapp://send?text=${encodeURIComponent(text + '\n' + url)}`);
-            else { navigator.clipboard.writeText(url); alert("লিংক কপি হয়েছে!"); }
+            
+            if(type === 'whatsapp') {
+                window.open(`whatsapp://send?text=${encodeURIComponent(text + '\n' + botLink)}`);
+            } else {
+                // Copy Link
+                navigator.clipboard.writeText(botLink).then(() => {
+                    alert("লিংক কপি হয়েছে! (Telegram Link)");
+                }).catch(() => {
+                    // Fallback if clipboard fails (rare in modern browsers)
+                    prompt("লিংক কপি করুন:", botLink);
+                });
+            }
         }
 
-        async function rateStory(stars) {
-            if(!currentStoryId) return;
-            await db.collection('stories').doc(currentStoryId).update({
-                ratingTotal: firebase.firestore.FieldValue.increment(stars),
-                ratingCount: firebase.firestore.FieldValue.increment(1)
-            });
-            document.getElementById('rating-msg').classList.remove('hidden');
-        }
+        async function rateStory(stars) { if(!currentStoryId) return; await db.collection('stories').doc(currentStoryId).update({ ratingTotal: firebase.firestore.FieldValue.increment(stars), ratingCount: firebase.firestore.FieldValue.increment(1) }); document.getElementById('rating-msg').classList.remove('hidden'); }
 
         function loadRelatedStories(cat, currentId) {
             const related = stories.filter(s => s.category === cat && s.id !== currentId && s.status === 'Published').slice(0, 3);
             const container = document.getElementById('related-stories-list');
             if(related.length === 0) container.innerHTML = "<p class='text-sm text-gray-400'>আর কোনো গল্প নেই।</p>";
-            else {
-                container.innerHTML = related.map(s => `
-                    <div onclick="openStory('${s.id}')" class="bg-gray-50 p-3 rounded border flex justify-between items-center cursor-pointer hover:bg-gray-100">
-                        <div><p class="font-bold text-sm text-gray-800">${s.title}</p><p class="text-xs text-gray-500">${s.author}</p></div>
-                        <span class="text-xs">➡️</span>
-                    </div>`).join('');
-            }
+            else { container.innerHTML = related.map(s => `<div onclick="openStory('${s.id}')" class="bg-gray-50 p-3 rounded border flex justify-between items-center cursor-pointer hover:bg-gray-100"><div><p class="font-bold text-sm text-gray-800">${s.title}</p><p class="text-xs text-gray-500">${s.author}</p></div><span class="text-xs">➡️</span></div>`).join(''); }
         }
 
         function loadComments(id) {
@@ -689,109 +592,25 @@
             if(commentUnsubscribe) commentUnsubscribe();
             commentUnsubscribe = db.collection('stories').doc(id).collection('comments').orderBy('createdAt', 'desc').limit(10).onSnapshot(snap => {
                 if(snap.empty) { div.innerHTML = "<p class='text-gray-400 text-sm'>প্রথম কমেন্ট করুন!</p>"; return; }
-                div.innerHTML = snap.docs.map(d => {
-                    const c = d.data();
-                    return `<div class="bg-gray-50 p-3 rounded-xl border"><p class="text-xs font-bold text-blue-600">@${c.user}</p><p class="text-sm text-gray-800">${c.text}</p></div>`;
-                }).join('');
+                div.innerHTML = snap.docs.map(d => { const c = d.data(); return `<div class="bg-gray-50 p-3 rounded-xl border"><p class="text-xs font-bold text-blue-600">@${c.user}</p><p class="text-sm text-gray-800">${c.text}</p></div>`; }).join('');
             });
         }
 
-        async function postComment() {
-            const txt = document.getElementById('comment-input').value.trim();
-            if(!txt) return;
-            if(!currentUser) { alert("কমেন্ট করতে লগইন করুন"); return; }
-            await db.collection('stories').doc(currentStoryId).collection('comments').add({
-                text: txt, user: currentUser.email.split('@')[0], uid: currentUser.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            document.getElementById('comment-input').value = "";
-        }
+        async function postComment() { const txt = document.getElementById('comment-input').value.trim(); if(!txt) return; if(!currentUser) { alert("কমেন্ট করতে লগইন করুন"); return; } await db.collection('stories').doc(currentStoryId).collection('comments').add({ text: txt, user: currentUser.email.split('@')[0], uid: currentUser.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() }); document.getElementById('comment-input').value = ""; }
 
-        // --- ADMIN ---
-        async function renderAdminStats() {
-            document.getElementById('stat-stories').innerText = stories.length;
-            document.getElementById('stat-views').innerText = stories.reduce((a, b) => a + (b.views||0), 0);
-            const uSnap = await db.collection('users').get();
-            document.getElementById('stat-users').innerText = uSnap.size;
-            renderAdminStoryList();
-        }
+        async function renderAdminStats() { document.getElementById('stat-stories').innerText = stories.length; document.getElementById('stat-views').innerText = stories.reduce((a, b) => a + (b.views||0), 0); const uSnap = await db.collection('users').get(); document.getElementById('stat-users').innerText = uSnap.size; renderAdminStoryList(); }
+        function renderAdminStoryList() { document.getElementById('admin-story-list').innerHTML = stories.map(s => `<div class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm"><span class="truncate w-1/2">${s.title} (${s.status})</span><div><button onclick="editStory('${s.id}')" class="text-blue-600 mr-2">Edit</button><button onclick="deleteStory('${s.id}')" class="text-red-600">Del</button></div></div>`).join(''); }
+        async function banUserByEmail() { const email = document.getElementById('ban-email-input').value; if(!email) return; const snap = await db.collection('users').where('email', '==', email).get(); if(snap.empty) { alert("পাওয়া যায়নি"); return; } snap.forEach(async doc => await db.collection('users').doc(doc.id).update({ isBanned: true })); alert("ব্যান করা হয়েছে: " + email); }
+        async function updateSettings() { const name = document.getElementById('set-app-name').value; const notice = document.getElementById('set-notice').value; await db.collection('config').doc('app_settings').set({ name, notice }, { merge: true }); alert("সেভ হয়েছে"); }
+        async function addCategory() { const val = document.getElementById('new-cat-input').value.trim(); if(val) await db.collection('config').doc('categories').set({ list: [...categories, val] }); }
+        async function deleteCategory(c) { if(confirm('মুছবেন?')) await db.collection('config').doc('categories').set({ list: categories.filter(x => x!==c) }); }
 
-        function renderAdminStoryList() {
-            document.getElementById('admin-story-list').innerHTML = stories.map(s => `
-                <div class="flex justify-between items-center bg-gray-50 p-2 rounded border text-sm">
-                    <span class="truncate w-1/2">${s.title} (${s.status})</span>
-                    <div><button onclick="editStory('${s.id}')" class="text-blue-600 mr-2">Edit</button><button onclick="deleteStory('${s.id}')" class="text-red-600">Del</button></div>
-                </div>`).join('');
-        }
-
-        async function banUserByEmail() {
-            const email = document.getElementById('ban-email-input').value;
-            if(!email) return;
-            const snap = await db.collection('users').where('email', '==', email).get();
-            if(snap.empty) { alert("পাওয়া যায়নি"); return; }
-            snap.forEach(async doc => await db.collection('users').doc(doc.id).update({ isBanned: true }));
-            alert("ব্যান করা হয়েছে: " + email);
-        }
-
-        async function updateSettings() {
-            const name = document.getElementById('set-app-name').value;
-            const notice = document.getElementById('set-notice').value;
-            await db.collection('config').doc('app_settings').set({ name, notice }, { merge: true });
-            alert("সেভ হয়েছে");
-        }
-
-        async function addCategory() {
-            const val = document.getElementById('new-cat-input').value.trim();
-            if(val) await db.collection('config').doc('categories').set({ list: [...categories, val] });
-        }
-        async function deleteCategory(c) {
-            if(confirm('মুছবেন?')) await db.collection('config').doc('categories').set({ list: categories.filter(x => x!==c) });
-        }
-
-        document.getElementById('story-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('edit-id').value;
-            const data = {
-                title: document.getElementById('story-title').value,
-                author: document.getElementById('story-author').value,
-                category: document.getElementById('story-category-select').value,
-                status: document.getElementById('story-status').value,
-                summary: document.getElementById('story-summary').value,
-                content: document.getElementById('story-content').value,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            if(!id) { data.views = 0; data.ratingTotal = 0; data.ratingCount = 0; }
-            id ? await db.collection('stories').doc(id).update(data) : await db.collection('stories').add(data);
-            resetForm(); alert("সফল!");
-        };
-
-        function editStory(id) {
-            const s = stories.find(x => x.id === id);
-            document.getElementById('edit-id').value = s.id;
-            document.getElementById('story-title').value = s.title;
-            document.getElementById('story-author').value = s.author;
-            document.getElementById('story-category-select').value = s.category;
-            document.getElementById('story-content').value = s.content;
-            document.getElementById('story-summary').value = s.summary;
-            document.getElementById('story-status').value = s.status;
-            document.getElementById('form-mode-title').innerText = "এডিট মোড";
-            window.scrollTo(0, document.getElementById('admin-panel').offsetTop);
-        }
-
+        document.getElementById('story-form').onsubmit = async (e) => { e.preventDefault(); const id = document.getElementById('edit-id').value; const data = { title: document.getElementById('story-title').value, author: document.getElementById('story-author').value, category: document.getElementById('story-category-select').value, status: document.getElementById('story-status').value, summary: document.getElementById('story-summary').value, content: document.getElementById('story-content').value, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }; if(!id) { data.views = 0; data.ratingTotal = 0; data.ratingCount = 0; } id ? await db.collection('stories').doc(id).update(data) : await db.collection('stories').add(data); resetForm(); alert("সফল!"); };
+        function editStory(id) { const s = stories.find(x => x.id === id); document.getElementById('edit-id').value = s.id; document.getElementById('story-title').value = s.title; document.getElementById('story-author').value = s.author; document.getElementById('story-category-select').value = s.category; document.getElementById('story-content').value = s.content; document.getElementById('story-summary').value = s.summary; document.getElementById('story-status').value = s.status; document.getElementById('form-mode-title').innerText = "এডিট মোড"; window.scrollTo(0, document.getElementById('admin-panel').offsetTop); }
         async function deleteStory(id) { if(confirm("মুছবেন?")) await db.collection('stories').doc(id).delete(); }
         function resetForm() { document.getElementById('story-form').reset(); document.getElementById('edit-id').value = ""; document.getElementById('form-mode-title').innerText = "গল্প লিখুন"; }
-
-        function showScreen(id) {
-            ['home-screen', 'reading-screen', 'admin-panel'].forEach(s => document.getElementById(s)?.classList.add('hidden'));
-            document.getElementById(id)?.classList.remove('hidden');
-            window.scrollTo(0,0);
-        }
-
-        function toggleReadScreenFavorite() {
-            if(!currentStoryId) return;
-            toggleFavorite(event, currentStoryId);
-            const favs = JSON.parse(localStorage.getItem('favStories')) || [];
-            document.getElementById('read-fav-btn').innerText = favs.includes(currentStoryId) ? '❤️' : '🤍';
-        }
+        function showScreen(id) { ['home-screen', 'reading-screen', 'admin-panel'].forEach(s => document.getElementById(s)?.classList.add('hidden')); document.getElementById(id)?.classList.remove('hidden'); window.scrollTo(0,0); }
+        function toggleReadScreenFavorite() { if(!currentStoryId) return; toggleFavorite(event, currentStoryId); const favs = JSON.parse(localStorage.getItem('favStories')) || []; document.getElementById('read-fav-btn').innerText = favs.includes(currentStoryId) ? '❤️' : '🤍'; }
     </script>
 </body>
 </html>
