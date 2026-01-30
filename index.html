@@ -167,7 +167,7 @@
                 টেলিগ্রাম চ্যানেলে জয়েন করুন
             </button>
 
-            <!-- Notice Board -->
+            <!-- Notice Board (Exactly like original) -->
             <div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-xl shadow-sm mx-1 mt-4 mb-4">
                 <div class="flex items-center mb-2 border-b border-blue-200 pb-2">
                     <span class="text-xl mr-2">📢</span>
@@ -176,16 +176,19 @@
                 <p class="text-sm text-gray-800 font-bold mb-3">প্রিয় পাঠক, আমাদের অ্যাপে আপনাকে স্বাগতম! ❤️</p>
                 <ul class="space-y-2 text-sm text-gray-700 leading-relaxed text-justify">
                     <li><span class="font-bold text-blue-800">১. সতর্কতা:</span> এই অ্যাপের বিষয়বস্তু শুধুমাত্র ১৮+ বয়স্কদের জন্য।</li>
-                    <li><span class="font-bold text-blue-800">২. সাপোর্ট:</span> অ্যাপটি ফ্রি রাখতে আমরা অ্যাড ব্যবহার করছি। গল্প পড়ার সময় অ্যাড আসতে পারে।</li>
+                    <li><span class="font-bold text-blue-800">২. সাপোর্ট:</span> অ্যাপটি ফ্রি রাখতে আমরা অ্যাড ব্যবহার করছি। গল্প পড়ার সময় অ্যাড আসতে পারে। দয়া করে অ্যাডটি দেখে সাপোর্ট করুন।</li>
                     <li><span class="font-bold text-blue-800">৩. কপিরাইট:</span> অ্যাপ থেকে লেখা কপি করা বন্ধ রাখা হয়েছে।</li>
                     <li><span class="font-bold text-blue-800">৪. আপডেট:</span> নতুন গল্পের আপডেট পেতে <span class="font-bold text-blue-600">টেলিগ্রাম চ্যানেলে</span> জয়েন করুন।</li>
                 </ul>
+                <div class="mt-3 pt-2 border-t border-blue-200 text-center"><p class="text-sm font-bold text-blue-900">আমাদের সাথে থাকার জন্য ধন্যবাদ!</p></div>
             </div>
 
-            <!-- Search -->
+            <!-- Search (Exactly like original) -->
             <input type="text" id="search-input" onkeyup="handleSearchDebounced()" placeholder="গল্প বা লেখক খুঁজুন..." class="w-full p-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:border-blue-500 text-gray-800 transition">
 
-            <div id="category-filters" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"></div>
+            <div id="category-filters" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <!-- Categories injected by JS -->
+            </div>
         </div>
 
         <div id="stories-list" class="px-4 space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4"></div>
@@ -202,7 +205,7 @@
         </button>
     </div>
 
-    <!-- Reading Screen -->
+    <!-- Reading Screen (Exactly like original) -->
     <div id="reading-screen" class="hidden min-h-screen bg-white pb-20 relative">
         <div id="reading-progress-bar" class="fixed top-0 left-0 h-1 bg-red-500 z-50 w-0"></div>
 
@@ -244,7 +247,7 @@
         </div>
     </div>
 
-    <!-- Admin Panel -->
+    <!-- Admin Panel (Exactly like original) -->
     <div id="admin-panel" class="hidden min-h-screen bg-gray-50 pb-20">
         <div class="bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-20 border-b">
             <h2 class="text-xl font-bold text-gray-800">অ্যাডমিন প্যানেল</h2>
@@ -313,7 +316,7 @@
     </div>
 
     <script>
-        // --- Telegram Initialization ---
+        // --- Telegram SDK initialization ---
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
@@ -349,31 +352,22 @@
         let commentUnsubscribe = null;
         let searchTimeout = null;
 
-        // TTS & Audio
+        // TTS
         let speechSynth = window.speechSynthesis;
         let speechUtterance = null;
         let isSpeaking = false;
         let heartbeatInterval = null;
-        let audioVoices = [];
 
         document.addEventListener('DOMContentLoaded', init);
 
         function init() {
             if(!localStorage.getItem('age_verified')) {
                 document.getElementById('age-gate').classList.remove('hidden');
-            } else {
-                document.getElementById('age-gate').classList.add('hidden');
             }
 
             if(localStorage.getItem('nightMode') === 'true') {
                 document.body.classList.add('night-mode');
             }
-            
-            const loadVoices = () => { audioVoices = window.speechSynthesis.getVoices(); };
-            if (window.speechSynthesis.onvoiceschanged !== undefined) {
-                window.speechSynthesis.onvoiceschanged = loadVoices;
-            }
-            loadVoices();
 
             auth.onAuthStateChanged(async user => {
                 currentUser = user;
@@ -390,7 +384,6 @@
                         }
                         startHeartbeat(user.uid);
                     } catch(e) {}
-                    document.getElementById('auth-modal').classList.add('hidden');
                     authBtn.innerText = "🚪"; 
                     if(user.email === ADMIN_EMAIL) adminBtn.classList.remove('hidden');
                 } else {
@@ -408,49 +401,42 @@
                 stories = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 applyFilters(); 
                 
-                if (!initialUrlCheckDone && stories.length > 0) {
-                    const params = new URLSearchParams(window.location.search);
-                    let sharedId = params.get('id');
+                // Hide Loader as soon as first snapshot arrives
+                if (!initialUrlCheckDone) {
+                    document.getElementById('loading-screen').classList.add('hidden');
                     
-                    // Telegram Deep Linking logic
-                    if (tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
-                        sharedId = tg.initDataUnsafe.start_param;
-                    }
-                    
+                    let sharedId = tg.initDataUnsafe?.start_param;
                     if(sharedId && stories.find(s => s.id === sharedId)) {
-                        document.getElementById('landing-page').classList.add('hidden');
-                        document.getElementById('loading-screen').classList.add('hidden');
                         openStory(sharedId);
                     } else {
-                        document.getElementById('loading-screen').classList.add('hidden');
                         document.getElementById('landing-page').classList.remove('hidden');
                     }
                     initialUrlCheckDone = true;
                 }
+            }, err => {
+                // Handle Error - Hide Loader
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('landing-page').classList.remove('hidden');
             });
 
-            window.addEventListener('scroll', () => {
-                if(!document.getElementById('reading-screen').classList.contains('hidden')) {
-                    updateReadingProgress();
-                }
-            });
             renderCategoriesUI();
+            window.addEventListener('scroll', updateReadingProgress);
         }
 
-        // Ad Logic
+        // --- Ad Logic ---
         function runWithAd(callback) {
             const loader = document.getElementById('loading-screen');
             if (typeof show_10366901 === 'function') {
                 loader.classList.remove('hidden');
                 show_10366901().then(() => {
                     loader.classList.add('hidden');
-                    if(callback) callback();
+                    callback();
                 }).catch(() => {
                     loader.classList.add('hidden');
-                    if(callback) callback();
+                    callback();
                 });
             } else {
-                if(callback) callback();
+                callback();
             }
         }
 
@@ -467,8 +453,12 @@
             });
         }
 
+        // --- Core Functions ---
         function acceptAgeGate() { localStorage.setItem('age_verified', 'true'); document.getElementById('age-gate').classList.add('hidden'); }
-        function updateAppMeta() { document.getElementById('app-title-tag').innerText = appSettings.name; document.getElementById('app-nav-title').innerText = appSettings.name; document.getElementById('set-app-name').value = appSettings.name || ""; document.getElementById('set-ad-link').value = appSettings.adLink || ""; }
+        function updateAppMeta() { 
+            document.getElementById('app-title-tag').innerText = appSettings.name || "বাংলা চটি গল্প"; 
+            document.getElementById('app-nav-title').innerText = appSettings.name || "বাংলা চটি গল্প"; 
+        }
         
         function handleAuth(e) {
             e.preventDefault();
@@ -477,11 +467,11 @@
             if (isSignUpMode) {
                 auth.createUserWithEmailAndPassword(email, pass).then(cred => {
                     db.collection('users').doc(cred.user.uid).set({ email, uid: cred.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp(), isBanned: false });
-                    showToast("স্বাগতম!", "success"); document.getElementById('auth-modal').classList.add('hidden');
+                    document.getElementById('auth-modal').classList.add('hidden');
                 }).catch(e => alert(e.message));
             } else {
                 auth.signInWithEmailAndPassword(email, pass).then(() => {
-                    showToast("লগইন সফল!", "success"); document.getElementById('auth-modal').classList.add('hidden');
+                    document.getElementById('auth-modal').classList.add('hidden');
                 }).catch(e => alert(e.message));
             }
         }
@@ -546,7 +536,7 @@
                         <span class="text-[10px] text-gray-400">👁️ ${s.views || 0}</span>
                     </div>
                     <h3 class="font-bold text-lg leading-tight mb-2 text-gray-800">${s.title}</h3>
-                    <p class="text-gray-500 text-sm line-clamp-2">${s.summary || 'বিস্তারিত...'}</p>
+                    <p class="text-gray-500 text-sm line-clamp-2">${s.content.substring(0, 100)}...</p>
                 </div>
             `).join('');
             renderPaginationUI();
@@ -556,12 +546,10 @@
             const container = document.getElementById('pagination-container');
             const totalPages = Math.ceil(currentFilteredList.length / itemsPerPage);
             if(totalPages <= 1) { container.innerHTML = ''; return; }
-            let html = `<button onclick="changePage(${currentPage - 1})" class="page-btn inactive" ${currentPage === 1 ? 'disabled' : ''}>←</button>`;
+            let html = '';
             for (let i = 1; i <= totalPages; i++) {
-                if (i >= currentPage - 1 && i <= currentPage + 1) 
-                    html += `<button onclick="changePage(${i})" class="page-btn ${i === currentPage ? 'active' : 'inactive'}">${i}</button>`;
+                html += `<button onclick="changePage(${i})" class="page-btn ${i === currentPage ? 'active' : 'inactive'}">${i}</button>`;
             }
-            html += `<button onclick="changePage(${currentPage + 1})" class="page-btn inactive" ${currentPage === totalPages ? 'disabled' : ''}>→</button>`;
             container.innerHTML = html;
         }
         
@@ -582,35 +570,31 @@
                 document.getElementById('read-content').innerHTML = s.content;
                 loadComments(id);
                 showScreen('reading-screen');
-                window.scrollTo(0,0);
+                tg.BackButton.show();
+                tg.BackButton.onClick(() => closeReadingScreen());
             });
         }
 
-        function closeReadingScreen() { stopTTS(); showScreen('home-screen'); currentStoryId = null; }
-
-        function getFavorites() { return JSON.parse(localStorage.getItem('favStories')) || []; }
-        function toggleFavorite(e, id) {
-            e.stopPropagation(); 
-            let favs = getFavorites();
-            favs = favs.includes(id) ? favs.filter(f => f !== id) : [...favs, id];
-            localStorage.setItem('favStories', JSON.stringify(favs));
-            if(currentStoryId) document.getElementById('read-fav-btn').innerText = favs.includes(currentStoryId) ? '❤️' : '🤍';
+        function closeReadingScreen() { 
+            stopTTS(); showScreen('home-screen'); currentStoryId = null; 
+            tg.BackButton.hide();
         }
-        function toggleReadScreenFavorite() { if(currentStoryId) toggleFavorite({stopPropagation:()=>{}}, currentStoryId); }
 
         function toggleTTS() {
-            if(isSpeaking) { stopTTS(); return; }
-            const text = document.getElementById('read-content').innerText;
-            speechUtterance = new SpeechSynthesisUtterance(text);
-            speechUtterance.onend = () => { isSpeaking = false; updateTTSBtn(); };
-            speechSynth.speak(speechUtterance); isSpeaking = true; updateTTSBtn();
+            if(isSpeaking) { speechSynth.cancel(); isSpeaking = false; }
+            else {
+                const text = document.getElementById('read-content').innerText;
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.onend = () => { isSpeaking = false; document.getElementById('tts-btn').innerText = "🔊"; };
+                speechSynth.speak(utter); isSpeaking = true;
+            }
+            document.getElementById('tts-btn').innerText = isSpeaking ? "🔇" : "🔊";
         }
-        function stopTTS() { if(speechSynth.speaking) speechSynth.cancel(); isSpeaking = false; updateTTSBtn(); }
-        function updateTTSBtn() { document.getElementById('tts-btn').innerText = isSpeaking ? "🔇" : "🔊"; }
+        function stopTTS() { speechSynth.cancel(); isSpeaking = false; document.getElementById('tts-btn').innerText = "🔊"; }
 
         function toggleSepiaMode() { document.getElementById('reading-container').classList.toggle('sepia-mode'); }
         function toggleFontFamily() { document.getElementById('read-content').classList.toggle('font-serif-mode'); }
-        function changeFontSize(action) { currentFontSize += (action === 'increase' ? 2 : -2); document.getElementById('read-content').style.fontSize = currentFontSize + 'px'; }
+        function changeFontSize() { currentFontSize += 2; if(currentFontSize > 30) currentFontSize = 18; document.getElementById('read-content').style.fontSize = currentFontSize + 'px'; }
         function toggleNightMode() { document.body.classList.toggle('night-mode'); localStorage.setItem('nightMode', document.body.classList.contains('night-mode')); }
 
         function loadComments(storyId) {
@@ -631,12 +615,12 @@
         function showScreen(id) { 
             ['home-screen', 'reading-screen', 'admin-panel'].forEach(s => document.getElementById(s).classList.add('hidden')); 
             document.getElementById(id).classList.remove('hidden'); 
+            window.scrollTo(0,0);
         }
 
-        function showToast(msg, type='info') { 
-            const container = document.getElementById('toast-container'); 
+        function showToast(msg) { 
             const toast = document.createElement('div'); toast.className = 'toast-msg'; toast.innerText = msg;
-            container.appendChild(toast); setTimeout(() => toast.remove(), 3000); 
+            document.getElementById('toast-container').appendChild(toast); setTimeout(() => toast.remove(), 3000); 
         }
 
         function updateReadingProgress() { 
@@ -647,18 +631,13 @@
         function startHeartbeat(uid) { heartbeatInterval = setInterval(() => { db.collection('users').doc(uid).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() }); }, 300000); }
         function stopHeartbeat() { clearInterval(heartbeatInterval); }
 
-        // Admin functions
+        // --- Admin Functions ---
         async function renderAdminAnalytics() {
-            const usersSnap = await db.collection('users').get();
-            document.getElementById('stat-total-users').innerText = usersSnap.size;
+            const snap = await db.collection('users').get();
+            document.getElementById('stat-total-users').innerText = snap.size;
         }
         function renderAdminListUI() {
-            document.getElementById('admin-story-list').innerHTML = stories.map(s => `<div class="p-3 border flex justify-between bg-white rounded"><span>${s.title}</span><button onclick="editStory('${s.id}')" class="text-blue-600">Edit</button></div>`).join('');
-        }
-        async function updateSettings() {
-            const name = document.getElementById('set-app-name').value;
-            await db.collection('config').doc('app_settings').set({ name }, { merge: true });
-            alert("Saved!");
+            document.getElementById('admin-story-list').innerHTML = stories.map(s => `<div class="p-3 border flex justify-between bg-white rounded mb-2"><span>${s.title}</span><button onclick="editStory('${s.id}')" class="text-blue-600">Edit</button></div>`).join('');
         }
         document.getElementById('story-form').onsubmit = async (e) => {
             e.preventDefault();
@@ -667,15 +646,13 @@
                 title: document.getElementById('story-title').value,
                 author: document.getElementById('story-author').value,
                 category: document.getElementById('story-category-select').value,
-                summary: document.getElementById('story-summary').value,
                 content: document.getElementById('story-content').value,
                 status: document.getElementById('story-status').value,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             id ? await db.collection('stories').doc(id).update(data) : await db.collection('stories').add(data);
-            resetForm();
+            e.target.reset(); document.getElementById('edit-id').value = "";
         };
-        function resetForm() { document.getElementById('story-form').reset(); document.getElementById('edit-id').value = ""; }
         function editStory(id) {
             const s = stories.find(x => x.id === id);
             document.getElementById('edit-id').value = s.id;
