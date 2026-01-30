@@ -5,15 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title id="app-title-tag">বাংলা চটি গল্প</title>
 
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Monetag Ads SDK -->
     <script src='//libtl.com/sdk.js' data-zone='10366901' data-sdk='show_10366901'></script>
 
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;600;700&family=Merriweather:wght@300;400;700&display=swap');
 
         body {
             font-family: 'Hind Siliguri', sans-serif;
@@ -21,35 +28,29 @@
             color: #1e293b;
             transition: background-color 0.3s, color 0.3s;
             -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
         }
 
-        /* Night Mode Styles */
-        body.night-mode {
-            background-color: #0f172a;
-            color: #e2e8f0;
-        }
-
+        /* Night Mode */
+        body.night-mode { background-color: #0f172a; color: #e2e8f0; }
         .night-mode .bg-white { background-color: #1e293b; }
         .night-mode .text-gray-800 { color: #f1f5f9; }
         .night-mode .text-gray-900 { color: #ffffff; }
         .night-mode .text-gray-500 { color: #94a3b8; }
-        .night-mode .border-gray-100 { border-color: #334155; }
         .night-mode .bg-gray-50 { background-color: #334155; }
-        .night-mode .hover\:bg-gray-50:hover { background-color: #475569; }
         .night-mode input, .night-mode textarea, .night-mode select {
-            background-color: #334155;
-            color: white;
-            border-color: #475569;
+            background-color: #334155; color: white; border-color: #475569;
         }
+        .night-mode .bg-blue-50 { background-color: #1e293b; border-color: #3b82f6; }
+        .night-mode .text-blue-900 { color: #93c5fd; }
+        .night-mode .text-blue-800 { color: #60a5fa; }
+        .night-mode .text-gray-700 { color: #cbd5e1; }
 
         .hidden { display: none !important; }
 
         .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3b82f6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6;
+            border-radius: 50%; width: 40px; height: 40px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -58,59 +59,89 @@
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
         .page-btn {
-            width: 35px; height: 35px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 8px; font-weight: bold; font-size: 14px;
-            cursor: pointer; transition: all 0.2s;
+            width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; transition: all 0.2s;
         }
         .page-btn.active { background-color: #2563eb; color: white; border: none; }
         .page-btn.inactive { background-color: white; border: 1px solid #e2e8f0; color: #1e293b; }
         .night-mode .page-btn.inactive { background-color: #1e293b; border-color: #334155; color: #e2e8f0; }
-        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* Landing Page Style */
-        #landing-page {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        #landing-page { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+
+        /* Reading Features */
+        .sepia-mode { background-color: #f4ecd8 !important; color: #433422 !important; }
+        .font-serif-mode { font-family: 'Merriweather', serif !important; }
+        .font-sans-mode { font-family: 'Hind Siliguri', sans-serif !important; }
+
+        /* --- COPY PROTECTION CLASS --- */
+        .protected-content {
+            user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            -moz-user-select: none;
         }
+
+        /* Toast */
+        #toast-container {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            z-index: 100; display: flex; flex-direction: column-reverse; gap: 10px; pointer-events: none;
+        }
+        .toast-msg {
+            background: rgba(0,0,0,0.85); color: white; padding: 10px 20px;
+            border-radius: 50px; font-size: 14px; backdrop-filter: blur(4px);
+            animation: slideUp 0.3s ease-out; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            white-space: nowrap; pointer-events: auto;
+        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        #reading-progress-bar { transition: width 0.1s; }
     </style>
 </head>
 <body>
 
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 z-[70] bg-white flex flex-col items-center justify-center hidden">
+        <div class="loader mb-4"></div>
+        <p id="loading-text" class="text-gray-500 animate-pulse">লোড হচ্ছে...</p>
+    </div>
+
+    <!-- Landing / Ad Page (ADDED AD HERE) -->
     <div id="landing-page" class="fixed inset-0 z-[60] flex flex-col items-center justify-center p-6 text-center text-white">
         <div class="bg-white/10 backdrop-blur-md p-10 rounded-3xl border border-white/20 shadow-2xl">
             <h1 class="text-4xl font-bold mb-4">বাংলা চটি গল্প</h1>
             <p class="text-lg opacity-90 mb-8">সেরা সব গল্পের ভাণ্ডারে আপনাকে স্বাগতম</p>
             <button onclick="enterAppWithAd()" class="bg-white text-purple-700 px-12 py-4 rounded-full font-black text-xl shadow-xl hover:bg-gray-100 transition-all transform active:scale-95 flex items-center gap-3 mx-auto">
-                🚀 Start Reading
+                🚀 পড়া শুরু করুন
             </button>
-            <p class="mt-6 text-xs opacity-60">গল্প পড়তে বাটনে ক্লিক করুন</p>
+            <p class="mt-6 text-xs opacity-60">বাটনে ক্লিক করলে একটি বিজ্ঞাপন ওপেন হতে পারে</p>
         </div>
     </div>
 
-    <div id="loading-screen" class="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center">
-        <div class="loader mb-4"></div>
-        <p class="text-gray-500 animate-pulse">লোড হচ্ছে...</p>
-    </div>
-
-    <div id="age-gate" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-5 backdrop-blur-sm">
-        <div class="bg-white p-8 rounded-2xl max-w-sm text-center shadow-2xl">
+    <!-- Age Verification -->
+    <div id="age-gate" class="hidden fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-5 backdrop-blur-sm">
+        <div class="bg-white p-8 rounded-2xl max-w-sm text-center shadow-2xl relative">
             <h2 class="text-2xl font-bold text-red-600 mb-4">সতর্কীকরণ (18+)</h2>
-            <p class="text-gray-600 mb-6">এই অ্যাপের বিষয়বস্তু শুধুমাত্র প্রাপ্তবয়স্কদের জন্য। আপনার বয়স কি ১৮ বছরের বেশি?</p>
-            <button onclick="acceptAgeGate()" class="bg-red-600 text-white px-8 py-3 rounded-full font-bold w-full hover:bg-red-700 transition">হ্যাঁ, আমি ১৮+</button>
+            <p class="text-gray-600 mb-6 font-medium">এই অ্যাপের বিষয়বস্তু শুধুমাত্র প্রাপ্তবয়স্কদের জন্য। আপনার বয়স কি ১৮ বছরের বেশি?</p>
+            <button onclick="acceptAgeGate()" class="bg-red-600 text-white px-8 py-3 rounded-full font-bold w-full hover:bg-red-700 transition shadow-lg">হ্যাঁ, আমি ১৮+</button>
         </div>
     </div>
 
+    <!-- Authentication Modal -->
     <div id="auth-modal" class="hidden fixed inset-0 z-40 bg-black/70 flex items-center justify-center p-5 backdrop-blur-sm">
         <div class="bg-white p-6 rounded-2xl w-full max-w-sm relative shadow-xl">
+            <button onclick="document.getElementById('auth-modal').classList.add('hidden')" class="absolute top-3 right-3 text-gray-400 text-xl font-bold">&times;</button>
             <h3 id="auth-title" class="text-xl font-bold mb-2 text-center text-gray-800">লগইন করুন</h3>
-            <p id="auth-subtitle" class="text-center text-sm text-gray-500 mb-6">গল্প পড়তে আপনার অ্যাকাউন্ট ব্যবহার করুন</p>
-            
+            <p id="auth-subtitle" class="text-center text-sm text-gray-500 mb-6">গল্প পড়তে ও কমেন্ট করতে লগইন প্রয়োজন</p>
+
             <form onsubmit="handleAuth(event)" class="space-y-4">
                 <input type="email" id="auth-email" placeholder="ইমেইল" required class="w-full p-3 border rounded-lg bg-gray-50 focus:outline-none focus:border-blue-500 text-gray-800">
                 <input type="password" id="auth-pass" placeholder="পাসওয়ার্ড" required class="w-full p-3 border rounded-lg bg-gray-50 focus:outline-none focus:border-blue-500 text-gray-800">
                 <button type="submit" id="auth-submit-btn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition">লগইন</button>
             </form>
-            
+
             <div class="mt-6 text-center">
                 <p class="text-gray-600 text-sm">অ্যাকাউন্ট নেই? 
                     <button onclick="toggleAuthMode()" id="auth-toggle-link" class="text-blue-600 font-bold">নতুন অ্যাকাউন্ট খুলুন</button>
@@ -119,26 +150,48 @@
         </div>
     </div>
 
+    <!-- Home Screen -->
     <div id="home-screen">
-        <header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100 px-4 py-3 flex justify-between items-center">
+        <header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100 px-4 py-3 flex justify-between items-center shadow-sm">
             <h1 id="app-nav-title" class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 cursor-pointer" onclick="window.location.reload()">বাংলা চটি গল্প</h1>
             <div class="flex items-center gap-3">
-                <button onclick="toggleNightMode()" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition">🌙</button>
-                <button onclick="auth.signOut()" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition">🚪</button>
+                <button onclick="toggleNightMode()" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition text-lg">🌙</button>
+                <button id="auth-icon-btn" onclick="checkAuthAction()" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition text-lg">👤</button>
             </div>
         </header>
 
         <div class="p-4 space-y-4">
-            <button onclick="window.open('https://t.me/banglachotigolpoBCG', '_blank')" class="w-full bg-[#0088cc] text-white py-3 rounded-xl font-bold shadow-md hover:bg-[#0077b5] transition flex items-center justify-center gap-2">
+            <!-- Telegram Button (Ad added here) -->
+            <button onclick="openTelegramWithAd()" class="w-full bg-[#0088cc] text-white py-3 rounded-xl font-bold shadow-md hover:bg-[#0077b5] transition flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 11.944 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
                 টেলিগ্রাম চ্যানেলে জয়েন করুন
             </button>
 
-            <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="গল্প বা লেখক খুঁজুন..." class="w-full p-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:border-blue-500 text-gray-800 transition">
+            <!-- Notice Board -->
+            <div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-xl shadow-sm mx-1 mt-4 mb-4">
+                <div class="flex items-center mb-2 border-b border-blue-200 pb-2">
+                    <span class="text-xl mr-2">📢</span>
+                    <h3 class="font-bold text-blue-900 text-lg">জরুরি নোটিশ</h3>
+                </div>
+                <p class="text-sm text-gray-800 font-bold mb-3">প্রিয় পাঠক, আমাদের অ্যাপে আপনাকে স্বাগতম! ❤️</p>
+                <ul class="space-y-2 text-sm text-gray-700 leading-relaxed text-justify">
+                    <li><span class="font-bold text-blue-800">১. সতর্কতা:</span> এই অ্যাপের বিষয়বস্তু শুধুমাত্র ১৮+ বয়স্কদের জন্য।</li>
+                    <li><span class="font-bold text-blue-800">২. সাপোর্ট:</span> অ্যাপটি ফ্রি রাখতে আমরা অ্যাড ব্যবহার করছি। গল্প পড়ার সময়, পেজ বদলানোর সময় বা ক্যাটাগরি চেঞ্জ করার সময় অ্যাড আসতে পারে। দয়া করে অ্যাডটি দেখে সাপোর্ট করুন।</li>
+                    <li><span class="font-bold text-blue-800">৩. কপিরাইট:</span> অ্যাপ থেকে লেখা কপি করা বন্ধ রাখা হয়েছে।</li>
+                    <li><span class="font-bold text-blue-800">৪. আপডেট:</span> নতুন গল্পের আপডেট পেতে <span class="font-bold text-blue-600">টেলিগ্রাম চ্যানেলে</span> জয়েন করুন।</li>
+                </ul>
+                <div class="mt-3 pt-2 border-t border-blue-200 text-center"><p class="text-sm font-bold text-blue-900">আমাদের সাথে থাকার জন্য ধন্যবাদ!</p></div>
+            </div>
 
-            <div id="category-filters" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"></div>
+            <!-- Search with Debounce -->
+            <input type="text" id="search-input" onkeyup="handleSearchDebounced()" placeholder="গল্প বা লেখক খুঁজুন..." class="w-full p-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:border-blue-500 text-gray-800 transition">
+
+            <div id="category-filters" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <!-- Categories injected by JS -->
+            </div>
         </div>
 
-        <div id="stories-list" class="px-4 space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        <div id="stories-list" class="px-4 space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4"></div>
 
         <div id="no-data-msg" class="hidden text-center py-20 text-gray-400">
             <p class="text-4xl mb-2">😞</p>
@@ -147,51 +200,59 @@
 
         <div id="pagination-container" class="py-8 flex justify-center items-center gap-2 flex-wrap px-4 pb-20"></div>
 
-        <button id="admin-indicator" onclick="showScreen('admin-panel'); renderAdminListUI();" class="hidden fixed bottom-6 right-6 bg-purple-600 text-white p-4 rounded-full shadow-lg font-bold z-30 hover:scale-105 transition">
+        <button id="admin-indicator" onclick="showScreen('admin-panel'); renderAdminListUI(); renderAdminAnalytics();" class="hidden fixed bottom-6 right-6 bg-purple-600 text-white p-4 rounded-full shadow-lg font-bold z-30 hover:scale-105 transition border-2 border-white">
             ⚙️ প্যানেল
         </button>
     </div>
 
-    <div id="reading-screen" class="hidden min-h-screen bg-white pb-20">
-        <div class="sticky top-0 bg-white/95 backdrop-blur border-b p-3 flex justify-between items-center z-10 shadow-sm">
+    <!-- Reading Screen -->
+    <div id="reading-screen" class="hidden min-h-screen bg-white pb-20 relative">
+        <div id="reading-progress-bar" class="fixed top-0 left-0 h-1 bg-red-500 z-50 w-0"></div>
+
+        <div class="sticky top-0 bg-white/95 backdrop-blur border-b p-3 flex justify-between items-center z-10 shadow-sm transition-colors duration-300" id="reading-header">
             <button onclick="closeReadingScreen()" class="text-blue-600 font-bold px-2 py-1 flex items-center gap-1 hover:bg-blue-50 rounded">
-                <span>←</span> ফিরে যান
+                <span class="text-xl">←</span>
             </button>
             <div class="flex items-center gap-2">
-                <button id="read-fav-btn" onclick="toggleReadScreenFavorite()" class="p-2 text-xl border rounded bg-gray-50 hover:bg-gray-100 transition mr-2">🤍</button>
-                <button onclick="changeFontSize('decrease')" class="bg-gray-100 border px-3 py-1 rounded text-sm font-bold active:bg-gray-200 text-black">A-</button>
-                <button onclick="changeFontSize('increase')" class="bg-gray-100 border px-3 py-1 rounded text-sm font-bold active:bg-gray-200 text-black">A+</button>
+                <button id="tts-btn" onclick="toggleTTS()" class="p-2 text-lg border rounded bg-gray-50 hover:bg-gray-100 transition w-10 h-10 flex items-center justify-center">🔊</button>
+                <button onclick="toggleSepiaMode()" class="p-2 text-lg border rounded bg-amber-100 hover:bg-amber-200 transition w-10 h-10 flex items-center justify-center">📜</button>
+                <button onclick="toggleFontFamily()" class="p-2 text-lg border rounded bg-gray-50 hover:bg-gray-100 transition font-serif w-10 h-10 flex items-center justify-center">T</button>
+                <button onclick="changeFontSize('increase')" class="bg-gray-100 border p-2 rounded text-lg font-bold active:bg-gray-200 text-black w-10 h-10 flex items-center justify-center">A+</button>
             </div>
         </div>
 
-        <div class="p-5 max-w-3xl mx-auto">
+        <div id="reading-container" class="p-5 max-w-3xl mx-auto transition-colors duration-300 min-h-[80vh]">
             <h1 id="read-title" class="text-2xl md:text-3xl font-bold mb-3 text-gray-900 leading-snug">গল্পের নাম</h1>
             <div class="flex flex-wrap justify-between items-center text-sm text-gray-500 mb-6 border-b pb-4 gap-2">
                 <div class="flex gap-3">
                     <span id="read-meta-author" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100">লেখক</span> 
                     <span id="read-meta-cat" class="bg-gray-100 px-2 py-0.5 rounded border border-gray-200 text-gray-600">ক্যাটাগরি</span>
                 </div>
-                <div id="read-meta-views" class="flex items-center gap-1 font-medium bg-gray-50 px-2 py-0.5 rounded">👁️ 0</div>
+                <div class="flex items-center gap-2">
+                    <button id="read-fav-btn" onclick="toggleReadScreenFavorite()" class="text-xl transition active:scale-125">🤍</button>
+                    <div id="read-meta-views" class="flex items-center gap-1 font-medium bg-gray-50 px-2 py-0.5 rounded">👁️ 0</div>
+                </div>
             </div>
-            <div id="read-content" class="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium select-none" style="font-size: 18px;"></div>
             
+            <div id="read-content" class="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium select-none font-sans-mode" style="font-size: 18px;"></div>
+
             <div class="mt-12 pt-6 border-t border-gray-200">
                 <h3 class="text-xl font-bold mb-4 text-gray-800">মতামত জানান</h3>
                 <div class="space-y-4 mb-6">
-                    <textarea id="comment-input" rows="3" placeholder="আপনার মন্তব্য লিখুন..." class="w-full p-3 border rounded-xl text-black outline-none bg-gray-50 focus:border-blue-500 transition"></textarea>
+                    <textarea id="comment-input" rows="3" placeholder="গল্পটি কেমন লাগলো? (লগইন প্রয়োজন)" class="w-full p-3 border rounded-xl text-black outline-none bg-gray-50 focus:border-blue-500 transition"></textarea>
                     <button onclick="postComment()" class="bg-blue-600 text-white px-8 py-2.5 rounded-lg font-bold hover:bg-blue-700 transition shadow-md active:scale-95">কমেন্ট করুন</button>
                 </div>
-                <div id="comments-display" class="space-y-4">
-                    </div>
+                <div id="comments-display" class="space-y-4"></div>
             </div>
-            <div class="mt-8 pt-6 border-t border-gray-100">
+            <div class="mt-8 pt-6 border-t border-gray-100 mb-10">
                 <button onclick="shareStory()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3.5 rounded-xl font-bold shadow-lg flex justify-center items-center gap-2 transition-transform active:scale-95">
-                    <span>🔗</span> শেয়ার করার জন্য লিংক তৈরি করুন
+                    🔗 শেয়ার করুন
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Admin Panel -->
     <div id="admin-panel" class="hidden min-h-screen bg-gray-50 pb-20">
         <div class="bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-20 border-b">
             <h2 class="text-xl font-bold text-gray-800">অ্যাডমিন প্যানেল</h2>
@@ -202,29 +263,28 @@
         </div>
 
         <div class="p-4 max-w-4xl mx-auto space-y-6">
+            <div class="bg-white p-5 rounded-xl shadow-sm border grid grid-cols-2 gap-4">
+                <div class="bg-blue-50 p-4 rounded-lg text-center">
+                    <h3 class="text-2xl font-bold text-blue-600" id="stat-total-users">0</h3>
+                    <p class="text-xs text-gray-500 uppercase font-bold">Total Users</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <h3 class="text-2xl font-bold text-green-600" id="stat-active-users">0</h3>
+                    <p class="text-xs text-gray-500 uppercase font-bold">Active (5m)</p>
+                </div>
+            </div>
+
             <div class="bg-white p-5 rounded-xl shadow-sm border">
-                <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">⚙️ অ্যাপ সেটিংস</h3>
+                <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">⚙️ সেটিংস</h3>
                 <div class="grid gap-4 md:grid-cols-2">
                     <input id="set-app-name" type="text" placeholder="অ্যাপের নাম" class="p-2 border rounded text-black">
-                    <input id="set-ad-link" type="text" placeholder="Monetag Direct Link (URL)" class="p-2 border rounded text-black">
+                    <input id="set-ad-link" type="text" placeholder="Ad Link URL" class="p-2 border rounded text-black">
                 </div>
                 <button onclick="updateSettings()" class="mt-4 bg-gray-800 text-white px-6 py-2 rounded-lg text-sm hover:bg-gray-900">সেভ করুন</button>
             </div>
 
             <div class="bg-white p-5 rounded-xl shadow-sm border">
-                <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">📂 ক্যাটাগরি ম্যানেজমেন্ট</h3>
-                <div class="flex gap-2 mb-4">
-                    <input id="new-cat-input" type="text" placeholder="নতুন ক্যাটাগরি নাম" class="flex-1 p-2 border rounded text-black focus:outline-none focus:border-blue-500">
-                    <button onclick="addCategory()" class="bg-green-600 text-white px-4 rounded font-bold hover:bg-green-700 active:bg-green-800">+</button>
-                </div>
-                <div id="admin-cat-list" class="flex flex-wrap gap-2"></div>
-            </div>
-
-            <div class="bg-white p-5 rounded-xl shadow-sm border">
-                <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h3 id="form-mode-title" class="font-bold text-lg text-gray-800">📝 গল্প লিখুন</h3>
-                    <button onclick="resetForm()" class="text-xs text-blue-600 underline hover:text-blue-800">রিসেট</button>
-                </div>
+                <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">📝 গল্প লিখুন</h3>
                 <form id="story-form" class="space-y-4">
                     <input type="hidden" id="edit-id">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -238,25 +298,37 @@
                             <option value="Draft">Draft</option>
                         </select>
                     </div>
-                    <textarea id="story-summary" rows="2" placeholder="ছোট সারসংক্ষেপ" class="w-full p-3 border rounded text-black outline-none"></textarea>
+                    <textarea id="story-summary" rows="2" placeholder="সারসংক্ষেপ" class="w-full p-3 border rounded text-black outline-none"></textarea>
                     <textarea id="story-content" required rows="10" placeholder="মূল গল্প..." class="w-full p-3 border rounded text-black outline-none"></textarea>
-                    <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition">সাবমিট করুন</button>
+                    <div class="flex gap-2">
+                        <button type="submit" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition">সাবমিট</button>
+                        <button type="button" onclick="resetForm()" class="px-4 py-3 bg-gray-200 rounded-lg font-bold text-gray-700">রিসেট</button>
+                    </div>
                 </form>
             </div>
 
             <div class="bg-white p-5 rounded-xl shadow-sm border">
-                <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">সব গল্পের তালিকা</h3>
+                <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">গল্পের তালিকা</h3>
                 <div id="admin-story-list" class="space-y-3"></div>
+            </div>
+            
+            <div class="bg-white p-5 rounded-xl shadow-sm border">
+                <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">👥 ইউজার (Ban System)</h3>
+                <button onclick="loadAllUsers()" class="mb-4 bg-gray-200 px-3 py-1 rounded text-sm">Load Users</button>
+                <div id="admin-user-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
             </div>
         </div>
     </div>
 
     <script>
-        const ADMIN_EMAIL = "bcg332006@gmail.com";
-        const DEFAULT_CATS = ['রোমান্টিক', 'পরকীয়া', 'ইনসেস্ট', 'ভাবি', 'লেসবিয়ান', 'ফ্যান্টাসি', 'অন্যান্য', 'মা ছেলে'];
-
+        // CONFIGURATION
+        const ADMIN_EMAIL = "bcg332006@gmail.com"; 
+        const TELEGRAM_BOT_USERNAME = "Bangalchotigolpo_bot"; 
+        const TELEGRAM_APP_SHORTNAME = "bcg"; 
+        
+        // আপনার রিয়েল ফায়ারবেস কনফিগারেশন দিয়ে এটি প্রতিস্থাপন করুন
         const firebaseConfig = {
-            apiKey: "AIzaSyA4gqOdRYydzPOR7a8brxBy2Bs49MtVqJw",
+            apiKey: "AIzaSyA4gqOdRYydzPOR7a8brxBy2Bs49MtVqJw", 
             authDomain: "bangla-f8386.firebaseapp.com",
             projectId: "bangla-f8386",
             storageBucket: "bangla-f8386.firebasestorage.app",
@@ -268,8 +340,9 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        let appSettings = { name: "বাংলা চটি গল্প", adLink: "https://google.com" };
-        let categories = [...DEFAULT_CATS]; 
+        // State Variables
+        let appSettings = { name: "বাংলা চটি গল্প", adLink: "" };
+        let categories = ['রোমান্টিক', 'পরকীয়া', 'ইনসেস্ট', 'ভাবি', 'লেসবিয়ান', 'ফ্যান্টাসি', 'অন্যান্য'];
         let stories = [];
         let currentUser = null;
         let currentFontSize = 18; 
@@ -280,179 +353,213 @@
         let currentFilteredList = [];
         let isSignUpMode = false;
         let commentUnsubscribe = null;
+        let searchTimeout = null;
+
+        // TTS & Audio
+        let speechSynth = window.speechSynthesis;
+        let speechUtterance = null;
+        let isSpeaking = false;
+        let heartbeatInterval = null;
+        let audioVoices = [];
 
         document.addEventListener('DOMContentLoaded', init);
 
         function init() {
             if(!localStorage.getItem('age_verified')) {
                 document.getElementById('age-gate').classList.remove('hidden');
+            } else {
+                document.getElementById('age-gate').classList.add('hidden');
             }
 
             if(localStorage.getItem('nightMode') === 'true') {
                 document.body.classList.add('night-mode');
             }
+            
+            const loadVoices = () => { audioVoices = window.speechSynthesis.getVoices(); };
+            if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                window.speechSynthesis.onvoiceschanged = loadVoices;
+            }
+            loadVoices();
 
-            auth.onAuthStateChanged(user => {
+            auth.onAuthStateChanged(async user => {
                 currentUser = user;
-                const authModal = document.getElementById('auth-modal');
                 const adminBtn = document.getElementById('admin-indicator');
+                const authBtn = document.getElementById('auth-icon-btn');
 
                 if(user) {
-                    authModal.classList.add('hidden');
-                    if(user.email === ADMIN_EMAIL) {
-                        adminBtn.classList.remove('hidden');
-                    } else {
-                        adminBtn.classList.add('hidden');
-                        if(!document.getElementById('admin-panel').classList.contains('hidden')) showScreen('home-screen');
-                    }
+                    try {
+                        const userDoc = await db.collection('users').doc(user.uid).get();
+                        if(userDoc.exists && userDoc.data().isBanned) {
+                            await auth.signOut();
+                            showToast("আপনার অ্যাকাউন্ট নিষিদ্ধ করা হয়েছে।", "error");
+                            return;
+                        }
+                        startHeartbeat(user.uid);
+                    } catch(e) { console.log("User sync error", e); }
+
+                    document.getElementById('auth-modal').classList.add('hidden');
+                    authBtn.innerText = "🚪"; 
+                    if(user.email === ADMIN_EMAIL) adminBtn.classList.remove('hidden');
+                    else adminBtn.classList.add('hidden');
                 } else {
-                    authModal.classList.remove('hidden');
+                    stopHeartbeat();
                     adminBtn.classList.add('hidden');
+                    authBtn.innerText = "👤"; 
                 }
             });
 
             db.collection('config').doc('app_settings').onSnapshot(doc => {
                 if(doc.exists) { appSettings = doc.data(); updateAppMeta(); }
-                removeLoader();
-            }, err => removeLoader());
-
-            db.collection('config').doc('categories').onSnapshot(doc => {
-                if(doc.exists && doc.data().list) categories = doc.data().list;
-                renderCategoriesUI();
             });
 
             db.collection('stories').orderBy('updatedAt', 'desc').onSnapshot(snap => {
                 stories = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 applyFilters(); 
-                if(currentUser && currentUser.email === ADMIN_EMAIL) renderAdminListUI();
                 if (!initialUrlCheckDone && stories.length > 0) {
                     const params = new URLSearchParams(window.location.search);
-                    const sharedId = params.get('id') || params.get('startapp');
+                    let sharedId = params.get('id');
+                    const tg = window.Telegram.WebApp;
+                    if (tg.initDataUnsafe && tg.initDataUnsafe.start_param) sharedId = tg.initDataUnsafe.start_param;
                     if(sharedId && stories.find(s => s.id === sharedId)) {
-                        // If direct link, skip landing page
                         document.getElementById('landing-page').classList.add('hidden');
                         openStory(sharedId);
                     }
+                    tg.ready(); tg.expand();
                     initialUrlCheckDone = true;
                 }
             });
+
+            window.addEventListener('scroll', () => {
+                if(!document.getElementById('reading-screen').classList.contains('hidden')) {
+                    updateReadingProgress();
+                    clearTimeout(window.scrollSaveTimer);
+                    window.scrollSaveTimer = setTimeout(() => {
+                        if(currentStoryId) localStorage.setItem(`scroll_pos_${currentStoryId}`, window.scrollY);
+                    }, 500);
+                }
+            });
+            renderCategoriesUI();
         }
 
-        // --- New Landing Page Ad Logic ---
-        function enterAppWithAd() {
-            // Monetag Ad ট্রিগার করা
+        // --- GLOBAL AD TRIGGER FUNCTION ---
+        function runWithAd(callback) {
+            const loader = document.getElementById('loading-screen');
+            const loadText = document.getElementById('loading-text');
+            
+            // Monetag Ad Logic
             if (typeof show_10366901 === 'function') {
-                show_10366901('pop').then(() => {
-                    document.getElementById('landing-page').classList.add('hidden');
+                loader.classList.remove('hidden');
+                loadText.innerText = "লোডিং...";
+                
+                show_10366901().then(() => {
+                    loader.classList.add('hidden');
+                    if(callback) callback();
                 }).catch(() => {
-                    document.getElementById('landing-page').classList.add('hidden');
+                    loader.classList.add('hidden');
+                    if(callback) callback();
                 });
             } else {
-                triggerDirectLinkAd();
+                if(callback) callback();
+            }
+        }
+
+        // --- Ad Buttons & Triggers ---
+        function enterAppWithAd() {
+            runWithAd(() => {
                 document.getElementById('landing-page').classList.add('hidden');
+            });
+        }
+        
+        function openTelegramWithAd() {
+            runWithAd(() => {
+                window.open('https://t.me/banglachotigolpoBCG', '_blank');
+            });
+        }
+
+        // --- Core Functions ---
+        function acceptAgeGate() { localStorage.setItem('age_verified', 'true'); document.getElementById('age-gate').classList.add('hidden'); }
+        function updateAppMeta() { document.getElementById('app-title-tag').innerText = appSettings.name; document.getElementById('app-nav-title').innerText = appSettings.name; document.getElementById('set-app-name').value = appSettings.name || ""; document.getElementById('set-ad-link').value = appSettings.adLink || ""; }
+        
+        function handleAuth(e) {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-pass').value;
+            const btn = document.getElementById('auth-submit-btn');
+            btn.disabled = true; btn.innerText = "অপেক্ষা করুন...";
+            if (isSignUpMode) {
+                auth.createUserWithEmailAndPassword(email, pass).then(cred => {
+                    db.collection('users').doc(cred.user.uid).set({ email, uid: cred.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp(), isBanned: false });
+                    showToast("স্বাগতম!", "success"); document.getElementById('auth-modal').classList.add('hidden');
+                }).catch(e => alert(e.message)).finally(() => { btn.disabled=false; btn.innerText="সাইন-আপ"; });
+            } else {
+                auth.signInWithEmailAndPassword(email, pass).then(() => {
+                    showToast("লগইন সফল!", "success"); document.getElementById('auth-modal').classList.add('hidden');
+                }).catch(e => alert(e.message)).finally(() => { btn.disabled=false; btn.innerText="লগইন"; });
             }
         }
 
         function toggleAuthMode() {
             isSignUpMode = !isSignUpMode;
             document.getElementById('auth-title').innerText = isSignUpMode ? "নতুন অ্যাকাউন্ট" : "লগইন করুন";
-            document.getElementById('auth-subtitle').innerText = isSignUpMode ? "তথ্য দিয়ে সাইন-আপ করুন" : "গল্প পড়তে আপনার অ্যাকাউন্ট ব্যবহার করুন";
             document.getElementById('auth-submit-btn').innerText = isSignUpMode ? "সাইন-আপ" : "লগইন";
             document.getElementById('auth-toggle-link').innerText = isSignUpMode ? "লগইন করুন" : "নতুন অ্যাকাউন্ট খুলুন";
         }
-
-        async function handleAuth(e) {
-            e.preventDefault();
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-pass').value;
-            const btn = document.getElementById('auth-submit-btn');
-            btn.disabled = true;
-            btn.innerText = "অপেক্ষা করুন...";
-
-            try {
-                if (isSignUpMode) {
-                    await auth.createUserWithEmailAndPassword(email, pass);
-                    alert("অ্যাকাউন্ট তৈরি হয়েছে!");
-                } else {
-                    await auth.signInWithEmailAndPassword(email, pass);
-                }
-            } catch(err) {
-                alert("ভুল হয়েছে: " + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = isSignUpMode ? "সাইন-আপ" : "লগইন";
-            }
+        function checkAuthAction() {
+            if(currentUser) { if(confirm("লগআউট করবেন?")) auth.signOut(); } 
+            else document.getElementById('auth-modal').classList.remove('hidden');
         }
 
-        function removeLoader() { document.getElementById('loading-screen')?.classList.add('hidden'); }
-
-        function updateAppMeta() {
-            document.getElementById('app-title-tag').innerText = appSettings.name;
-            document.getElementById('app-nav-title').innerText = appSettings.name;
-            document.getElementById('set-app-name').value = appSettings.name || "";
-            document.getElementById('set-ad-link').value = appSettings.adLink || "";
-        }
-
-        function triggerDirectLinkAd() {
-            if(appSettings.adLink?.startsWith('http')) window.open(appSettings.adLink, '_blank');
-        }
-
-        function acceptAgeGate() {
-            localStorage.setItem('age_verified', 'true');
-            document.getElementById('age-gate').classList.add('hidden');
-        }
-
-        function getFavorites() { return JSON.parse(localStorage.getItem('favStories')) || []; }
-
-        function toggleFavorite(e, id) {
-            e.stopPropagation(); 
-            let favs = getFavorites();
-            favs = favs.includes(id) ? favs.filter(f => f !== id) : [...favs, id];
-            localStorage.setItem('favStories', JSON.stringify(favs));
-            applyFilters();
-        }
-
-        function toggleReadScreenFavorite() {
-            if(!currentStoryId) return;
-            let favs = getFavorites();
-            favs = favs.includes(currentStoryId) ? favs.filter(f => f !== currentStoryId) : [...favs, currentStoryId];
-            localStorage.setItem('favStories', JSON.stringify(favs));
-            document.getElementById('read-fav-btn').innerText = favs.includes(currentStoryId) ? '❤️' : '🤍';
+        // --- Filtering & List ---
+        function handleSearchDebounced() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => { currentPage = 1; applyFilters(); }, 300);
         }
 
         function applyFilters(categoryOverride = null) {
             let searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
-            const activeCatBtn = document.querySelector('#category-filters .bg-blue-600');
-            const activeFavBtn = document.querySelector('#category-filters .bg-pink-600');
+            let currentCat = categoryOverride;
+            if(!currentCat) {
+                if(document.getElementById('btn-cat-fav').classList.contains('ring-2')) currentCat = 'FAVORITES';
+                else if(document.getElementById('btn-cat-trend').classList.contains('ring-2')) currentCat = 'TRENDING';
+                else {
+                    const active = Array.from(document.querySelectorAll('.cat-btn')).find(b => b.classList.contains('ring-2'));
+                    currentCat = active ? active.innerText : 'ALL';
+                }
+            }
 
-            let cat = categoryOverride || (activeFavBtn ? 'FAVORITES' : (activeCatBtn ? activeCatBtn.innerText : 'ALL'));
             let filtered = stories.filter(s => s.status === 'Published');
-
-            if(cat === 'FAVORITES') filtered = filtered.filter(s => getFavorites().includes(s.id));
-            else if (cat !== 'ALL' && cat !== 'সব') filtered = filtered.filter(s => s.category === cat);
-
+            if(currentCat === 'FAVORITES') filtered = filtered.filter(s => getFavorites().includes(s.id));
+            else if(currentCat === 'TRENDING') filtered = filtered.sort((a,b) => (b.views || 0) - (a.views || 0)).slice(0, 15);
+            else if (currentCat !== 'ALL' && currentCat !== 'সব') filtered = filtered.filter(s => s.category === currentCat);
             if(searchQuery) filtered = filtered.filter(s => s.title?.toLowerCase().includes(searchQuery) || s.author?.toLowerCase().includes(searchQuery));
 
             currentFilteredList = filtered;
             renderPaginatedList();
         }
 
-        function handleSearch() { currentPage = 1; applyFilters(); }
-
-        function filterByCat(cat) {
-            currentPage = 1; 
-            document.querySelectorAll('#category-filters button').forEach(b => b.className = "px-5 py-1.5 bg-white text-gray-800 border rounded-full text-sm whitespace-nowrap shadow-sm hover:bg-gray-50 transition");
-            if(event?.target) event.target.className = cat === 'FAVORITES' ? "px-5 py-1.5 bg-pink-600 text-white border rounded-full text-sm whitespace-nowrap shadow-sm font-bold transition" : "px-5 py-1.5 bg-blue-600 text-white border rounded-full text-sm whitespace-nowrap shadow-sm font-bold transition";
-            applyFilters(cat);
+        function filterByCat(cat, btnId) {
+            // TRIGGER AD ON CATEGORY CHANGE
+            runWithAd(() => {
+                currentPage = 1;
+                document.querySelectorAll('#category-filters button').forEach(b => {
+                    b.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
+                    b.classList.add('bg-white');
+                });
+                const btn = document.getElementById(btnId);
+                if(btn) { btn.classList.remove('bg-white'); btn.classList.add('bg-blue-50', 'ring-2', 'ring-blue-500'); }
+                applyFilters(cat);
+            });
         }
 
-        function changePage(page) {
-            const totalPages = Math.ceil(currentFilteredList.length / itemsPerPage);
-            if(page < 1 || page > totalPages) return;
-            triggerDirectLinkAd();
-            currentPage = page;
-            renderPaginatedList();
-            window.scrollTo({top: 0, behavior: 'smooth'});
+        function renderCategoriesUI() {
+            const html = `
+                <button id="btn-cat-all" onclick="filterByCat('ALL', 'btn-cat-all')" class="cat-btn px-4 py-1.5 bg-blue-50 ring-2 ring-blue-500 text-gray-800 border rounded-full text-sm font-bold whitespace-nowrap">সব</button>
+                <button id="btn-cat-trend" onclick="filterByCat('TRENDING', 'btn-cat-trend')" class="px-4 py-1.5 bg-white text-orange-600 border rounded-full text-sm whitespace-nowrap">🔥 ট্রেন্ডিং</button>
+                <button id="btn-cat-fav" onclick="filterByCat('FAVORITES', 'btn-cat-fav')" class="px-4 py-1.5 bg-white text-pink-600 border rounded-full text-sm whitespace-nowrap">❤️ ফেভারিট</button>
+                ${categories.map((c, i) => `<button id="btn-cat-${i}" onclick="filterByCat('${c}', 'btn-cat-${i}')" class="cat-btn px-4 py-1.5 bg-white text-gray-800 border rounded-full text-sm whitespace-nowrap">${c}</button>`).join('')}
+            `;
+            document.getElementById('category-filters').innerHTML = html;
+            document.getElementById('story-category-select').innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
         }
 
         function renderPaginatedList() {
@@ -466,16 +573,17 @@
             const pageData = currentFilteredList.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
             const favs = getFavorites();
             list.innerHTML = pageData.map(s => `
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 card active:scale-[0.98] transition-transform cursor-pointer relative" onclick="openStory('${s.id}')">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 active:scale-[0.98] transition-transform cursor-pointer relative hover:shadow-md" onclick="openStory('${s.id}')">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full">${s.category || 'অন্যান্য'}</span>
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-gray-500 bg-gray-100 px-1 rounded">⏱️ ${Math.ceil((s.content?.split(' ').length || 0)/200)}m</span>
                             <span class="text-[10px] text-gray-400">👁️ ${s.views || 0}</span>
-                            <button onclick="toggleFavorite(event, '${s.id}')" class="text-xl">${favs.includes(s.id) ? '❤️' : '🤍'}</button>
                         </div>
                     </div>
                     <h3 class="font-bold text-lg leading-tight mb-2 text-gray-800">${s.title}</h3>
-                    <p class="text-gray-500 text-sm line-clamp-2">${s.summary || 'বিস্তারিত পড়তে ক্লিক করুন...'}</p>
+                    <p class="text-gray-500 text-sm line-clamp-2">${s.summary || 'বিস্তারিত...'}</p>
+                    <button onclick="toggleFavorite(event, '${s.id}')" class="absolute bottom-4 right-4 text-xl">${favs.includes(s.id) ? '❤️' : '🤍'}</button>
                 </div>
             `).join('');
             renderPaginationUI();
@@ -487,164 +595,151 @@
             if(totalPages <= 1) { container.innerHTML = ''; return; }
             let html = `<button onclick="changePage(${currentPage - 1})" class="page-btn inactive" ${currentPage === 1 ? 'disabled' : ''}>←</button>`;
             for (let i = 1; i <= totalPages; i++) {
-                if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) html += `<button onclick="changePage(${i})" class="page-btn ${i === currentPage ? 'active' : 'inactive'}">${i}</button>`;
+                if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) 
+                    html += `<button onclick="changePage(${i})" class="page-btn ${i === currentPage ? 'active' : 'inactive'}">${i}</button>`;
                 else if (i === currentPage - 2 || i === currentPage + 2) html += `<span class="px-1 text-gray-400">...</span>`;
             }
             html += `<button onclick="changePage(${currentPage + 1})" class="page-btn inactive" ${currentPage === totalPages ? 'disabled' : ''}>→</button>`;
             container.innerHTML = html;
         }
-
-        function renderCategoriesUI() {
-            document.getElementById('category-filters').innerHTML = `
-                <button onclick="filterByCat('ALL')" class="px-5 py-1.5 bg-blue-600 text-white border rounded-full text-sm font-bold shadow-sm transition">সব</button>
-                <button onclick="filterByCat('FAVORITES')" class="px-5 py-1.5 bg-white text-pink-600 border rounded-full text-sm shadow-sm transition">❤️ ফেভারিট</button>
-                ${categories.map(c => `<button onclick="filterByCat('${c}')" class="px-5 py-1.5 bg-white text-gray-800 border rounded-full text-sm shadow-sm transition">${c}</button>`).join('')}
-            `;
-            document.getElementById('story-category-select').innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
-            const adminCatList = document.getElementById('admin-cat-list');
-            if(adminCatList) adminCatList.innerHTML = categories.map(c => `<span class="bg-gray-100 border px-3 py-1 rounded-full text-xs flex items-center gap-2 text-black mr-1 mb-1">${c} <button onclick="deleteCategory('${c}')" class="text-red-500 font-bold">×</button></span>`).join('');
+        
+        function changePage(page) {
+            const totalPages = Math.ceil(currentFilteredList.length / itemsPerPage);
+            if(page < 1 || page > totalPages) return;
+            // TRIGGER AD ON PAGINATION
+            runWithAd(() => {
+                currentPage = page;
+                renderPaginatedList();
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            });
         }
 
+        // --- Story Reading ---
         function openStory(id) {
             const s = stories.find(x => x.id === id);
             if(!s) return;
-            if (typeof show_10366901 === 'function') show_10366901('pop'); else triggerDirectLinkAd();
-            currentStoryId = id; 
-            window.history.pushState({}, '', '?id=' + id);
-            if(!currentUser || currentUser.email !== ADMIN_EMAIL) db.collection('stories').doc(id).update({ views: firebase.firestore.FieldValue.increment(1) });
-            document.getElementById('read-title').innerText = s.title;
-            document.getElementById('read-meta-author').innerText = `লেখক: ${s.author}`;
-            document.getElementById('read-meta-cat').innerText = s.category;
-            document.getElementById('read-meta-views').innerText = `👁️ ${s.views ? s.views + 1 : 1}`;
-            document.getElementById('read-fav-btn').innerText = getFavorites().includes(id) ? '❤️' : '🤍';
-            const contentEl = document.getElementById('read-content');
-            const splitIdx = s.content.indexOf('\n', Math.floor(s.content.length / 2));
-            contentEl.innerHTML = `<div>${s.content.substring(0, splitIdx)}</div>` + (appSettings.adLink ? `<div class="my-8 text-center"><a href="${appSettings.adLink}" target="_blank" class="bg-red-600 text-white px-6 py-3 rounded-full font-bold animate-pulse inline-block">🔞 ১৮+ ভিডিও দেখুন</a></div>` : "") + `<div>${s.content.substring(splitIdx)}</div>`;
             
-            loadComments(id);
-            showScreen('reading-screen');
+            // TRIGGER AD ON STORY OPEN
+            runWithAd(() => {
+                currentStoryId = id; 
+                window.history.pushState({}, '', '?id=' + id);
+                db.collection('stories').doc(id).update({ views: firebase.firestore.FieldValue.increment(1) }).catch(()=>{});
+
+                document.getElementById('read-title').innerText = s.title;
+                document.getElementById('read-meta-author').innerText = `লেখক: ${s.author}`;
+                document.getElementById('read-meta-cat').innerText = s.category;
+                document.getElementById('read-meta-views').innerText = `👁️ ${s.views ? s.views + 1 : 1}`;
+                document.getElementById('read-fav-btn').innerText = getFavorites().includes(id) ? '❤️' : '🤍';
+                
+                const contentEl = document.getElementById('read-content');
+                if (currentUser && currentUser.email === ADMIN_EMAIL) {
+                    contentEl.classList.remove('protected-content'); document.oncontextmenu = null; 
+                } else {
+                    contentEl.classList.add('protected-content'); document.oncontextmenu = (e) => false; 
+                }
+                contentEl.innerHTML = s.content;
+                loadComments(id);
+                showScreen('reading-screen');
+                const savedPos = localStorage.getItem(`scroll_pos_${id}`);
+                if(savedPos) setTimeout(() => { window.scrollTo({top: parseInt(savedPos), behavior: 'smooth'}); }, 100);
+            });
         }
 
         function closeReadingScreen() { 
-            showScreen('home-screen'); 
-            currentStoryId = null; 
+            stopTTS(); showScreen('home-screen'); currentStoryId = null; 
             window.history.pushState({}, '', window.location.pathname);
             if(commentUnsubscribe) { commentUnsubscribe(); commentUnsubscribe = null; }
+            document.oncontextmenu = null;
         }
 
-        function changeFontSize(action) {
-            currentFontSize = action === 'increase' ? Math.min(currentFontSize + 2, 34) : Math.max(currentFontSize - 2, 12);
-            const el = document.getElementById('read-content');
-            el.style.fontSize = currentFontSize + 'px'; el.style.lineHeight = (currentFontSize + 12) + 'px';
+        // --- Features ---
+        function getFavorites() { return JSON.parse(localStorage.getItem('favStories')) || []; }
+        function toggleFavorite(e, id) {
+            e.stopPropagation(); 
+            let favs = getFavorites();
+            favs = favs.includes(id) ? favs.filter(f => f !== id) : [...favs, id];
+            localStorage.setItem('favStories', JSON.stringify(favs));
+            if(currentStoryId) document.getElementById('read-fav-btn').innerText = favs.includes(currentStoryId) ? '❤️' : '🤍';
+            else applyFilters(); 
         }
+        function toggleReadScreenFavorite() { if(currentStoryId) toggleFavorite({stopPropagation:()=>{}}, currentStoryId); }
 
-        function shareStory() {
-            const text = `🔥 গল্প: "${document.getElementById('read-title').innerText}"\nপড়তে ক্লিক করুন: ${window.location.href}`;
-            if (navigator.share) navigator.share({title: 'গল্প', text}).catch(() => {});
-            else { navigator.clipboard.writeText(text); alert("লিংক কপি হয়েছে!"); }
+        function toggleTTS() {
+            if(isSpeaking) { stopTTS(); return; }
+            const text = document.getElementById('read-content').innerText;
+            if(!text) return;
+            speechUtterance = new SpeechSynthesisUtterance(text);
+            if(audioVoices.length === 0) audioVoices = window.speechSynthesis.getVoices();
+            const bnVoice = audioVoices.find(v => v.lang.includes('bn')) || audioVoices.find(v => v.name.toLowerCase().includes('bangla'));
+            if(bnVoice) speechUtterance.voice = bnVoice;
+            speechUtterance.rate = 0.9;
+            speechUtterance.onend = () => { isSpeaking = false; updateTTSBtn(); };
+            speechUtterance.onerror = (e) => { console.error(e); isSpeaking = false; updateTTSBtn(); };
+            speechSynth.speak(speechUtterance); isSpeaking = true; updateTTSBtn();
+            showToast("পড়া শুরু হচ্ছে... 🔊", "success");
         }
+        function stopTTS() { if(speechSynth.speaking) speechSynth.cancel(); isSpeaking = false; updateTTSBtn(); }
+        function updateTTSBtn() { document.getElementById('tts-btn').innerText = isSpeaking ? "🔇" : "🔊"; }
 
-        async function updateSettings() {
-            const name = document.getElementById('set-app-name').value;
-            const link = document.getElementById('set-ad-link').value;
-            await db.collection('config').doc('app_settings').set({ name, adLink: link }, { merge: true });
-            alert("সেভ হয়েছে!");
-        }
-
-        async function addCategory() {
-            const val = document.getElementById('new-cat-input').value.trim();
-            if(val && !categories.includes(val)) {
-                await db.collection('config').doc('categories').set({ list: [...categories, val] });
-                document.getElementById('new-cat-input').value = "";
-            }
-        }
-
-        async function deleteCategory(cat) {
-            if(confirm("মুছবেন?")) await db.collection('config').doc('categories').set({ list: categories.filter(c => c !== cat) });
-        }
-
-        document.getElementById('story-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('edit-id').value;
-            const data = {
-                title: document.getElementById('story-title').value,
-                author: document.getElementById('story-author').value,
-                category: document.getElementById('story-category-select').value,
-                summary: document.getElementById('story-summary').value,
-                content: document.getElementById('story-content').value,
-                status: document.getElementById('story-status').value,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            if(!id) data.views = 0;
-            id ? await db.collection('stories').doc(id).update(data) : await db.collection('stories').add(data);
-            resetForm(); alert("সফল!");
-        };
-
-        function resetForm() { document.getElementById('story-form').reset(); document.getElementById('edit-id').value = ""; document.getElementById('form-mode-title').innerText = "গল্প লিখুন"; }
-
-        function editStory(id) {
-            const s = stories.find(x => x.id === id);
-            document.getElementById('edit-id').value = s.id;
-            document.getElementById('story-title').value = s.title;
-            document.getElementById('story-author').value = s.author;
-            document.getElementById('story-category-select').value = s.category;
-            document.getElementById('story-content').value = s.content;
-            document.getElementById('story-status').value = s.status;
-            document.getElementById('form-mode-title').innerText = "এডিট মোড";
-        }
-
-        async function deleteStory(id) { if(confirm("মুছবেন?")) await db.collection('stories').doc(id).delete(); }
-
-        function showScreen(id) {
-            ['home-screen', 'reading-screen', 'admin-panel'].forEach(s => document.getElementById(s)?.classList.add('hidden'));
-            document.getElementById(id)?.classList.remove('hidden');
-            window.scrollTo(0,0);
-        }
-
-        function renderAdminListUI() {
-            document.getElementById('admin-story-list').innerHTML = stories.map(s => `
-                <div class="flex justify-between items-center bg-gray-50 p-3 rounded border">
-                    <div><h4 class="font-bold text-sm text-gray-800">${s.title}</h4><span class="text-xs text-gray-500">${s.status}</span></div>
-                    <div class="flex gap-2">
-                        <button onclick="editStory('${s.id}')" class="text-blue-600 text-sm">Edit</button>
-                        <button onclick="deleteStory('${s.id}')" class="text-red-600 text-sm">Delete</button>
-                    </div>
-                </div>`).join('');
-        }
-
+        function toggleSepiaMode() { document.getElementById('reading-container').classList.toggle('sepia-mode'); document.getElementById('reading-header').classList.toggle('sepia-mode'); }
+        function toggleFontFamily() { const el = document.getElementById('read-content'); if(el.classList.contains('font-sans-mode')) { el.classList.replace('font-sans-mode', 'font-serif-mode'); showToast("ফন্ট: Serif"); } else { el.classList.replace('font-serif-mode', 'font-sans-mode'); showToast("ফন্ট: Sans-serif"); } }
+        function changeFontSize(action) { currentFontSize = action === 'increase' ? (currentFontSize >= 30 ? 16 : currentFontSize + 2) : 18; const el = document.getElementById('read-content'); el.style.fontSize = currentFontSize + 'px'; el.style.lineHeight = (currentFontSize * 1.6) + 'px'; }
         function toggleNightMode() { document.body.classList.toggle('night-mode'); localStorage.setItem('nightMode', document.body.classList.contains('night-mode')); }
 
+        // --- Comments & Social ---
         function loadComments(storyId) {
-            const display = document.getElementById('comments-display');
-            display.innerHTML = '<p class="text-gray-400 text-sm animate-pulse">লোড হচ্ছে...</p>';
+            const display = document.getElementById('comments-display'); display.innerHTML = '<div class="loader mx-auto"></div>';
             if (commentUnsubscribe) commentUnsubscribe();
-            commentUnsubscribe = db.collection('stories').doc(storyId).collection('comments')
-                .orderBy('createdAt', 'desc')
-                .onSnapshot(snap => {
-                    if (snap.empty) { display.innerHTML = '<p class="text-gray-400 text-sm">কোনো মন্তব্য নেই।</p>'; return; }
-                    display.innerHTML = snap.docs.map(doc => {
-                        const data = doc.data();
-                        const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString('bn-BD') : 'কিছুক্ষণ আগে';
-                        return `<div class="bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm">
-                            <div class="flex justify-between items-center mb-2"><span class="font-bold text-sm text-blue-600">@${data.userName || 'ইউজার'}</span><span class="text-[10px] text-gray-400 font-medium">${date}</span></div>
-                            <p class="text-gray-700 text-[15px]">${data.text}</p></div>`;
-                    }).join('');
-                });
+            commentUnsubscribe = db.collection('stories').doc(storyId).collection('comments').orderBy('createdAt', 'desc').limit(50).onSnapshot(snap => {
+                if (snap.empty) { display.innerHTML = '<p class="text-gray-400 text-sm text-center">কোনো মন্তব্য নেই, আপনিই প্রথম হোন!</p>'; return; }
+                display.innerHTML = snap.docs.map(doc => {
+                    const data = doc.data();
+                    const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('bn-BD') : '';
+                    return `<div class="bg-gray-50 p-3 rounded-xl border border-gray-100 shadow-sm"><div class="flex justify-between items-center mb-1"><span class="font-bold text-xs text-blue-600">${data.userName || 'অজানা'}</span><span class="text-[10px] text-gray-400">${date}</span></div><p class="text-gray-700 text-sm">${data.text}</p></div>`;
+                }).join('');
+            });
         }
-
         async function postComment() {
             const input = document.getElementById('comment-input');
             const text = input.value.trim();
             if (!text) return;
-            if (!currentUser) { alert("কমেন্ট করতে লগইন করুন"); document.getElementById('auth-modal').classList.remove('hidden'); return; }
-            try {
-                await db.collection('stories').doc(currentStoryId).collection('comments').add({
-                    text: text, uid: currentUser.uid, userName: currentUser.email.split('@')[0],
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                input.value = "";
-            } catch (err) { alert("ভুল হয়েছে: " + err.message); }
+            if (!currentUser) { showToast("কমেন্ট করতে লগইন করুন", "error"); document.getElementById('auth-modal').classList.remove('hidden'); return; }
+            try { await db.collection('stories').doc(currentStoryId).collection('comments').add({ text, uid: currentUser.uid, userName: currentUser.email.split('@')[0], createdAt: firebase.firestore.FieldValue.serverTimestamp() }); input.value = ""; showToast("মন্তব্য পোস্ট করা হয়েছে", "success"); } catch (err) { showToast("এরর: " + err.message, "error"); }
         }
+        function shareStory() {
+            const tgLink = `https://t.me/${TELEGRAM_BOT_USERNAME}/${TELEGRAM_APP_SHORTNAME}?startapp=${currentStoryId}`;
+            const text = `🔥 গল্প: "${document.getElementById('read-title').innerText}"\nপড়তে ক্লিক করুন: ${tgLink}`;
+            const tg = window.Telegram.WebApp;
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(tgLink)}&text=${encodeURIComponent(text)}`);
+            else { if (navigator.share) navigator.share({title: 'Bangla Choti', text, url: tgLink}).catch(()=>{}); else { navigator.clipboard.writeText(text); showToast("লিংক কপি হয়েছে!", "success"); } }
+        }
+
+        // --- Utils ---
+        function showScreen(id) { ['home-screen', 'reading-screen', 'admin-panel'].forEach(s => document.getElementById(s)?.classList.add('hidden')); document.getElementById(id)?.classList.remove('hidden'); window.scrollTo(0,0); }
+        function showToast(msg, type='info') { const container = document.getElementById('toast-container'); const toast = document.createElement('div'); toast.className = 'toast-msg'; toast.innerText = msg; toast.style.borderLeft = type === 'error' ? '4px solid red' : (type === 'success' ? '4px solid green' : '4px solid blue'); container.appendChild(toast); setTimeout(() => toast.remove(), 3000); }
+        function updateReadingProgress() { const winScroll = document.body.scrollTop || document.documentElement.scrollTop; const height = document.documentElement.scrollHeight - document.documentElement.clientHeight; document.getElementById("reading-progress-bar").style.width = ((winScroll / height) * 100) + "%"; }
+        function startHeartbeat(uid) { if(heartbeatInterval) clearInterval(heartbeatInterval); heartbeatInterval = setInterval(() => { db.collection('users').doc(uid).update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{}); }, 300000); }
+        function stopHeartbeat() { if(heartbeatInterval) clearInterval(heartbeatInterval); }
+        
+        // --- Admin ---
+        async function renderAdminAnalytics() {
+            if(!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+            const now = new Date();
+            try {
+                const usersSnap = await db.collection('users').get();
+                document.getElementById('stat-total-users').innerText = usersSnap.size;
+                const activeCount = usersSnap.docs.filter(d => { const data = d.data(); return data.lastActive && data.lastActive.toDate() > (new Date(now.getTime() - 5*60000)); }).length;
+                document.getElementById('stat-active-users').innerText = activeCount;
+            } catch(e) { console.error(e); }
+        }
+        async function loadAllUsers() { const list = document.getElementById('admin-user-list'); list.innerHTML = 'Loading...'; const snap = await db.collection('users').orderBy('createdAt', 'desc').limit(20).get(); list.innerHTML = snap.docs.map(d => { const u = d.data(); return `<div class="bg-gray-100 p-2 rounded text-xs flex justify-between items-center border"><span>${u.email}</span><button onclick="toggleBan('${u.uid}', ${u.isBanned})" class="${u.isBanned ? 'bg-red-600 text-white' : 'bg-gray-300'} px-2 py-1 rounded font-bold">${u.isBanned ? 'Unban' : 'Ban'}</button></div>`; }).join(''); }
+        async function toggleBan(uid, currentStatus) { if(confirm(currentStatus ? "Unban?" : "Ban?")) { await db.collection('users').doc(uid).update({ isBanned: !currentStatus }); loadAllUsers(); } }
+        function renderAdminListUI() { document.getElementById('admin-story-list').innerHTML = stories.map(s => `<div class="flex justify-between items-center bg-gray-50 p-3 rounded border"><div><h4 class="font-bold text-sm text-gray-800">${s.title}</h4><span class="text-xs text-gray-500">${s.status}</span></div><div class="flex gap-2"><button onclick="editStory('${s.id}')" class="text-blue-600 text-sm font-bold">Edit</button><button onclick="deleteStory('${s.id}')" class="text-red-600 text-sm font-bold">Del</button></div></div>`).join(''); }
+        async function updateSettings() { const name = document.getElementById('set-app-name').value; const link = document.getElementById('set-ad-link').value; await db.collection('config').doc('app_settings').set({ name, adLink: link }, { merge: true }); alert("Settings Saved!"); }
+        document.getElementById('story-form').onsubmit = async (e) => { e.preventDefault(); const id = document.getElementById('edit-id').value; const data = { title: document.getElementById('story-title').value, author: document.getElementById('story-author').value, category: document.getElementById('story-category-select').value, summary: document.getElementById('story-summary').value, content: document.getElementById('story-content').value, status: document.getElementById('story-status').value, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }; if(!id) data.views = 0; try { id ? await db.collection('stories').doc(id).update(data) : await db.collection('stories').add(data); resetForm(); showToast("সেভ হয়েছে!", "success"); } catch(e) { alert(e.message); } };
+        function resetForm() { document.getElementById('story-form').reset(); document.getElementById('edit-id').value = ""; }
+        function editStory(id) { const s = stories.find(x => x.id === id); document.getElementById('edit-id').value = s.id; document.getElementById('story-title').value = s.title; document.getElementById('story-author').value = s.author; document.getElementById('story-category-select').value = s.category; document.getElementById('story-summary').value = s.summary; document.getElementById('story-content').value = s.content; document.getElementById('story-status').value = s.status; window.scrollTo({top:0, behavior:'smooth'}); }
+        async function deleteStory(id) { if(confirm("Sure?")) await db.collection('stories').doc(id).delete(); }
     </script>
 </body>
 </html>
