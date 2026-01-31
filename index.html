@@ -5,22 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title id="app-title-tag">বাংলা চটি গল্প</title>
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Telegram WebApp SDK (Required for Deep Linking) -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-    <!-- Ad SDK -->
     <script src='//libtl.com/sdk.js' data-zone='10366901' data-sdk='show_10366901'></script>
 
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;600;700&family=Merriweather:wght@300;400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;600;700&display=swap');
 
         body {
             font-family: 'Hind Siliguri', sans-serif;
@@ -79,42 +72,9 @@
         #landing-page {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-
-        /* --- NEW STYLES FOR FEATURES --- */
-        /* Sepia Mode */
-        .sepia-mode {
-            background-color: #f4ecd8 !important;
-            color: #433422 !important;
-        }
-        .night-mode .sepia-mode { /* Sepia overrides night in reading container */
-            background-color: #f4ecd8 !important;
-            color: #433422 !important;
-        }
-        
-        /* Font Toggles */
-        .font-serif-mode { font-family: 'Merriweather', serif !important; }
-        .font-sans-mode { font-family: 'Hind Siliguri', sans-serif !important; }
-
-        /* Toast Notification */
-        #toast-container {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            z-index: 100; display: flex; flex-col-reverse; gap: 10px;
-        }
-        .toast-msg {
-            background: rgba(0,0,0,0.85); color: white; padding: 12px 24px;
-            border-radius: 50px; font-size: 14px; backdrop-filter: blur(4px);
-            animation: slideUp 0.3s ease-out; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
-        /* Progress Bar */
-        #reading-progress-bar { transition: width 0.1s; }
     </style>
 </head>
 <body>
-
-    <!-- Toast Notification Container -->
-    <div id="toast-container"></div>
 
     <div id="landing-page" class="fixed inset-0 z-[60] flex flex-col items-center justify-center p-6 text-center text-white">
         <div class="bg-white/10 backdrop-blur-md p-10 rounded-3xl border border-white/20 shadow-2xl">
@@ -173,12 +133,9 @@
                 টেলিগ্রাম চ্যানেলে জয়েন করুন
             </button>
 
-            <!-- Feature 1: Real-time Search updated logic -->
             <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="গল্প বা লেখক খুঁজুন..." class="w-full p-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:border-blue-500 text-gray-800 transition">
 
-            <div id="category-filters" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                <!-- Feature 2: Trending Button will be injected here via JS -->
-            </div>
+            <div id="category-filters" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"></div>
         </div>
 
         <div id="stories-list" class="px-4 space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -190,46 +147,33 @@
 
         <div id="pagination-container" class="py-8 flex justify-center items-center gap-2 flex-wrap px-4 pb-20"></div>
 
-        <button id="admin-indicator" onclick="showScreen('admin-panel'); renderAdminListUI(); renderAdminAnalytics();" class="hidden fixed bottom-6 right-6 bg-purple-600 text-white p-4 rounded-full shadow-lg font-bold z-30 hover:scale-105 transition">
+        <button id="admin-indicator" onclick="showScreen('admin-panel'); renderAdminListUI();" class="hidden fixed bottom-6 right-6 bg-purple-600 text-white p-4 rounded-full shadow-lg font-bold z-30 hover:scale-105 transition">
             ⚙️ প্যানেল
         </button>
     </div>
 
-    <div id="reading-screen" class="hidden min-h-screen bg-white pb-20 relative">
-        <!-- Feature 4: Visual Progress Bar -->
-        <div id="reading-progress-bar" class="fixed top-0 left-0 h-1 bg-red-500 z-50 w-0"></div>
-
-        <div class="sticky top-0 bg-white/95 backdrop-blur border-b p-3 flex justify-between items-center z-10 shadow-sm transition-colors duration-300" id="reading-header">
+    <div id="reading-screen" class="hidden min-h-screen bg-white pb-20">
+        <div class="sticky top-0 bg-white/95 backdrop-blur border-b p-3 flex justify-between items-center z-10 shadow-sm">
             <button onclick="closeReadingScreen()" class="text-blue-600 font-bold px-2 py-1 flex items-center gap-1 hover:bg-blue-50 rounded">
                 <span>←</span> ফিরে যান
             </button>
             <div class="flex items-center gap-2">
-                <!-- Feature 5 & 6: Audio, Sepia, Font Toggles -->
-                <button id="tts-btn" onclick="toggleTTS()" class="p-2 text-sm border rounded bg-gray-50 hover:bg-gray-100 transition" title="Listen">🔊</button>
-                <button onclick="toggleSepiaMode()" class="p-2 text-sm border rounded bg-amber-100 hover:bg-amber-200 transition" title="Sepia Mode">📜</button>
-                <button onclick="toggleFontFamily()" class="p-2 text-sm border rounded bg-gray-50 hover:bg-gray-100 transition font-serif" title="Toggle Font">Tt</button>
-                
                 <button id="read-fav-btn" onclick="toggleReadScreenFavorite()" class="p-2 text-xl border rounded bg-gray-50 hover:bg-gray-100 transition mr-2">🤍</button>
                 <button onclick="changeFontSize('decrease')" class="bg-gray-100 border px-3 py-1 rounded text-sm font-bold active:bg-gray-200 text-black">A-</button>
                 <button onclick="changeFontSize('increase')" class="bg-gray-100 border px-3 py-1 rounded text-sm font-bold active:bg-gray-200 text-black">A+</button>
             </div>
         </div>
 
-        <div id="reading-container" class="p-5 max-w-3xl mx-auto transition-colors duration-300">
+        <div class="p-5 max-w-3xl mx-auto">
             <h1 id="read-title" class="text-2xl md:text-3xl font-bold mb-3 text-gray-900 leading-snug">গল্পের নাম</h1>
             <div class="flex flex-wrap justify-between items-center text-sm text-gray-500 mb-6 border-b pb-4 gap-2">
                 <div class="flex gap-3">
                     <span id="read-meta-author" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100">লেখক</span> 
                     <span id="read-meta-cat" class="bg-gray-100 px-2 py-0.5 rounded border border-gray-200 text-gray-600">ক্যাটাগরি</span>
                 </div>
-                <!-- Feature 3: Reading Time Display -->
-                <div class="flex items-center gap-2">
-                    <span id="read-time-est" class="bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100 text-xs">⏱️ 0 min</span>
-                    <div id="read-meta-views" class="flex items-center gap-1 font-medium bg-gray-50 px-2 py-0.5 rounded">👁️ 0</div>
-                </div>
+                <div id="read-meta-views" class="flex items-center gap-1 font-medium bg-gray-50 px-2 py-0.5 rounded">👁️ 0</div>
             </div>
-            
-            <div id="read-content" class="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium select-none font-sans-mode" style="font-size: 18px;"></div>
+            <div id="read-content" class="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium select-none" style="font-size: 18px;"></div>
 
             <div class="mt-12 pt-6 border-t border-gray-200">
                 <h3 class="text-xl font-bold mb-4 text-gray-800">মতামত জানান</h3>
@@ -258,18 +202,6 @@
         </div>
 
         <div class="p-4 max-w-4xl mx-auto space-y-6">
-            <!-- Feature 9: Admin Analytics -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border grid grid-cols-2 gap-4">
-                <div class="bg-blue-50 p-4 rounded-lg text-center">
-                    <h3 class="text-2xl font-bold text-blue-600" id="stat-total-users">0</h3>
-                    <p class="text-xs text-gray-500 uppercase font-bold">Total Users</p>
-                </div>
-                <div class="bg-green-50 p-4 rounded-lg text-center">
-                    <h3 class="text-2xl font-bold text-green-600" id="stat-active-users">0</h3>
-                    <p class="text-xs text-gray-500 uppercase font-bold">Live Users (5m)</p>
-                </div>
-            </div>
-
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">⚙️ অ্যাপ সেটিংস</h3>
                 <div class="grid gap-4 md:grid-cols-2">
@@ -316,19 +248,6 @@
                 <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">সব গল্পের তালিকা</h3>
                 <div id="admin-story-list" class="space-y-3"></div>
             </div>
-
-            <!-- Feature 10 & 11: Global Comments & User Management -->
-             <div class="bg-white p-5 rounded-xl shadow-sm border">
-                <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">💬 সব মন্তব্য (Global)</h3>
-                <button onclick="loadAllComments()" class="mb-4 bg-gray-200 px-3 py-1 rounded text-sm">Load Comments</button>
-                <div id="admin-global-comments" class="space-y-2 max-h-60 overflow-y-auto"></div>
-            </div>
-
-             <div class="bg-white p-5 rounded-xl shadow-sm border">
-                <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">👥 ইউজার ম্যানেজমেন্ট (Ban System)</h3>
-                <button onclick="loadAllUsers()" class="mb-4 bg-gray-200 px-3 py-1 rounded text-sm">Load Users</button>
-                <div id="admin-user-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
-            </div>
         </div>
     </div>
 
@@ -336,7 +255,6 @@
         const ADMIN_EMAIL = "bcg332006@gmail.com";
         const DEFAULT_CATS = ['রোমান্টিক', 'পরকীয়া', 'ইনসেস্ট', 'ভাবি', 'লেসবিয়ান', 'ফ্যান্টাসি', 'অন্যান্য', 'মা ছেলে'];
 
-        // আপনার ফায়ারবেস কনফিগারেশন এখানে থাকবে
         const firebaseConfig = {
             apiKey: "AIzaSyA4gqOdRYydzPOR7a8brxBy2Bs49MtVqJw",
             authDomain: "bangla-f8386.firebaseapp.com",
@@ -363,13 +281,6 @@
         let isSignUpMode = false;
         let commentUnsubscribe = null;
 
-        // --- NEW VARIABLES FOR FEATURES ---
-        let speechSynth = window.speechSynthesis;
-        let speechUtterance = null;
-        let isSpeaking = false;
-        let heartbeatInterval = null;
-        let audioVoices = []; // For storing voices
-
         document.addEventListener('DOMContentLoaded', init);
 
         function init() {
@@ -380,30 +291,13 @@
             if(localStorage.getItem('nightMode') === 'true') {
                 document.body.classList.add('night-mode');
             }
-            
-            // Load Voices Early
-            if (window.speechSynthesis.onvoiceschanged !== undefined) {
-                window.speechSynthesis.onvoiceschanged = () => { audioVoices = window.speechSynthesis.getVoices(); };
-            }
-            // First attempt to load
-            audioVoices = window.speechSynthesis.getVoices();
 
-            auth.onAuthStateChanged(async user => {
+            auth.onAuthStateChanged(user => {
                 currentUser = user;
                 const authModal = document.getElementById('auth-modal');
                 const adminBtn = document.getElementById('admin-indicator');
 
                 if(user) {
-                    try {
-                        const userDoc = await db.collection('users').doc(user.uid).get();
-                        if(userDoc.exists && userDoc.data().isBanned) {
-                            await auth.signOut();
-                            showToast("আপনার অ্যাকাউন্ট নিষিদ্ধ করা হয়েছে।", "error");
-                            return;
-                        }
-                        startHeartbeat(user.uid);
-                    } catch(e) { console.log("User sync error", e); }
-
                     authModal.classList.add('hidden');
                     if(user.email === ADMIN_EMAIL) {
                         adminBtn.classList.remove('hidden');
@@ -412,7 +306,6 @@
                         if(!document.getElementById('admin-panel').classList.contains('hidden')) showScreen('home-screen');
                     }
                 } else {
-                    stopHeartbeat();
                     authModal.classList.remove('hidden');
                     adminBtn.classList.add('hidden');
                 }
@@ -432,41 +325,22 @@
                 stories = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 applyFilters(); 
                 if(currentUser && currentUser.email === ADMIN_EMAIL) renderAdminListUI();
-
-                // --- NEW TELEGRAM DEEP LINK LOGIC ---
                 if (!initialUrlCheckDone && stories.length > 0) {
                     const params = new URLSearchParams(window.location.search);
-                    let sharedId = params.get('id');
-
-                    // Telegram Deep Link Check
-                    const tg = window.Telegram.WebApp;
-                    if (tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
-                        sharedId = tg.initDataUnsafe.start_param;
-                    }
-
+                    const sharedId = params.get('id') || params.get('startapp');
                     if(sharedId && stories.find(s => s.id === sharedId)) {
+                        // If direct link, skip landing page
                         document.getElementById('landing-page').classList.add('hidden');
                         openStory(sharedId);
                     }
-                    
-                    tg.ready(); 
-                    tg.expand();
                     initialUrlCheckDone = true;
-                }
-            });
-
-            window.addEventListener('scroll', () => {
-                if(!document.getElementById('reading-screen').classList.contains('hidden')) {
-                    updateReadingProgress();
-                    clearTimeout(window.scrollSaveTimer);
-                    window.scrollSaveTimer = setTimeout(() => {
-                        if(currentStoryId) localStorage.setItem(`scroll_pos_${currentStoryId}`, window.scrollY);
-                    }, 500);
                 }
             });
         }
 
+        // --- New Landing Page Ad Logic ---
         function enterAppWithAd() {
+            // Monetag Ad ট্রিগার করা
             if (typeof show_10366901 === 'function') {
                 show_10366901('pop').then(() => {
                     document.getElementById('landing-page').classList.add('hidden');
@@ -497,18 +371,10 @@
 
             try {
                 if (isSignUpMode) {
-                    const userCred = await auth.createUserWithEmailAndPassword(email, pass);
-                    await db.collection('users').doc(userCred.user.uid).set({
-                        email: email,
-                        uid: userCred.user.uid,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        isBanned: false,
-                        lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    showToast("অ্যাকাউন্ট তৈরি হয়েছে! স্বাগতম।", "success");
+                    await auth.createUserWithEmailAndPassword(email, pass);
+                    alert("অ্যাকাউন্ট তৈরি হয়েছে!");
                 } else {
                     await auth.signInWithEmailAndPassword(email, pass);
-                    showToast("লগইন সফল হয়েছে!", "success");
                 }
             } catch(err) {
                 alert("ভুল হয়েছে: " + err.message);
@@ -558,15 +424,11 @@
             let searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
             const activeCatBtn = document.querySelector('#category-filters .bg-blue-600');
             const activeFavBtn = document.querySelector('#category-filters .bg-pink-600');
-            const activeTrendBtn = document.querySelector('#category-filters .bg-orange-500');
 
-            let cat = categoryOverride || (activeFavBtn ? 'FAVORITES' : (activeTrendBtn ? 'TRENDING' : (activeCatBtn ? activeCatBtn.innerText : 'ALL')));
+            let cat = categoryOverride || (activeFavBtn ? 'FAVORITES' : (activeCatBtn ? activeCatBtn.innerText : 'ALL'));
             let filtered = stories.filter(s => s.status === 'Published');
 
             if(cat === 'FAVORITES') filtered = filtered.filter(s => getFavorites().includes(s.id));
-            else if(cat === 'TRENDING') {
-                filtered = filtered.sort((a,b) => (b.views || 0) - (a.views || 0)).slice(0, 10);
-            }
             else if (cat !== 'ALL' && cat !== 'সব') filtered = filtered.filter(s => s.category === cat);
 
             if(searchQuery) filtered = filtered.filter(s => s.title?.toLowerCase().includes(searchQuery) || s.author?.toLowerCase().includes(searchQuery));
@@ -580,14 +442,7 @@
         function filterByCat(cat) {
             currentPage = 1; 
             document.querySelectorAll('#category-filters button').forEach(b => b.className = "px-5 py-1.5 bg-white text-gray-800 border rounded-full text-sm whitespace-nowrap shadow-sm hover:bg-gray-50 transition");
-            
-            if(cat === 'TRENDING') {
-                 if(event?.target) event.target.className = "px-5 py-1.5 bg-orange-500 text-white border rounded-full text-sm whitespace-nowrap shadow-sm font-bold transition";
-            } else if(cat === 'FAVORITES') {
-                 if(event?.target) event.target.className = "px-5 py-1.5 bg-pink-600 text-white border rounded-full text-sm whitespace-nowrap shadow-sm font-bold transition";
-            } else {
-                 if(event?.target) event.target.className = "px-5 py-1.5 bg-blue-600 text-white border rounded-full text-sm whitespace-nowrap shadow-sm font-bold transition";
-            }
+            if(event?.target) event.target.className = cat === 'FAVORITES' ? "px-5 py-1.5 bg-pink-600 text-white border rounded-full text-sm whitespace-nowrap shadow-sm font-bold transition" : "px-5 py-1.5 bg-blue-600 text-white border rounded-full text-sm whitespace-nowrap shadow-sm font-bold transition";
             applyFilters(cat);
         }
 
@@ -598,12 +453,6 @@
             currentPage = page;
             renderPaginatedList();
             window.scrollTo({top: 0, behavior: 'smooth'});
-        }
-
-        function calcReadingTime(text) {
-             const words = text ? text.split(/\s+/).length : 0;
-             const min = Math.ceil(words / 200);
-             return `${min} min`;
         }
 
         function renderPaginatedList() {
@@ -621,7 +470,6 @@
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full">${s.category || 'অন্যান্য'}</span>
                         <div class="flex items-center gap-3">
-                            <span class="text-[10px] text-gray-500 bg-gray-100 px-1 rounded">⏱️ ${calcReadingTime(s.content)}</span>
                             <span class="text-[10px] text-gray-400">👁️ ${s.views || 0}</span>
                             <button onclick="toggleFavorite(event, '${s.id}')" class="text-xl">${favs.includes(s.id) ? '❤️' : '🤍'}</button>
                         </div>
@@ -649,7 +497,6 @@
         function renderCategoriesUI() {
             document.getElementById('category-filters').innerHTML = `
                 <button onclick="filterByCat('ALL')" class="px-5 py-1.5 bg-blue-600 text-white border rounded-full text-sm font-bold shadow-sm transition">সব</button>
-                <button onclick="filterByCat('TRENDING')" class="px-5 py-1.5 bg-white text-orange-600 border rounded-full text-sm shadow-sm transition">🔥 ট্রেন্ডিং</button>
                 <button onclick="filterByCat('FAVORITES')" class="px-5 py-1.5 bg-white text-pink-600 border rounded-full text-sm shadow-sm transition">❤️ ফেভারিট</button>
                 ${categories.map(c => `<button onclick="filterByCat('${c}')" class="px-5 py-1.5 bg-white text-gray-800 border rounded-full text-sm shadow-sm transition">${c}</button>`).join('')}
             `;
@@ -669,7 +516,6 @@
             document.getElementById('read-meta-author').innerText = `লেখক: ${s.author}`;
             document.getElementById('read-meta-cat').innerText = s.category;
             document.getElementById('read-meta-views').innerText = `👁️ ${s.views ? s.views + 1 : 1}`;
-            document.getElementById('read-time-est').innerText = `⏱️ ${calcReadingTime(s.content)}`;
             document.getElementById('read-fav-btn').innerText = getFavorites().includes(id) ? '❤️' : '🤍';
             const contentEl = document.getElementById('read-content');
             const splitIdx = s.content.indexOf('\n', Math.floor(s.content.length / 2));
@@ -677,18 +523,9 @@
 
             loadComments(id);
             showScreen('reading-screen');
-            
-            const savedPos = localStorage.getItem(`scroll_pos_${id}`);
-            if(savedPos) {
-                setTimeout(() => {
-                    window.scrollTo({top: parseInt(savedPos), behavior: 'smooth'});
-                    showToast("পড়া চালিয়ে যান...", "info");
-                }, 100);
-            }
         }
 
         function closeReadingScreen() { 
-            stopTTS(); 
             showScreen('home-screen'); 
             currentStoryId = null; 
             window.history.pushState({}, '', window.location.pathname);
@@ -701,183 +538,10 @@
             el.style.fontSize = currentFontSize + 'px'; el.style.lineHeight = (currentFontSize + 12) + 'px';
         }
 
-        function updateReadingProgress() {
-             const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-             const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-             const scrolled = (winScroll / height) * 100;
-             document.getElementById("reading-progress-bar").style.width = scrolled + "%";
-        }
-
-        function toggleTTS() {
-            if(isSpeaking) { stopTTS(); return; }
-            
-            const text = document.getElementById('read-content').innerText;
-            if(!text) return;
-
-            speechUtterance = new SpeechSynthesisUtterance(text);
-            
-            if(audioVoices.length === 0) audioVoices = window.speechSynthesis.getVoices();
-            
-            const banglaVoice = audioVoices.find(v => v.lang === 'bn-BD') || 
-                                audioVoices.find(v => v.lang === 'bn-IN') ||
-                                audioVoices.find(v => v.name.toLowerCase().includes('bangla'));
-
-            if (banglaVoice) {
-                speechUtterance.voice = banglaVoice;
-                speechUtterance.lang = banglaVoice.lang;
-            } else {
-                speechUtterance.lang = 'bn-BD';
-                showToast("ফোনে বাংলা ভয়েস নেই! সেটিংস চেক করুন।", "error");
-            }
-            
-            speechUtterance.rate = 0.9;
-            speechUtterance.onend = () => { isSpeaking = false; updateTTSBtn(); };
-            speechUtterance.onerror = (e) => { console.error("TTS Error:", e); isSpeaking = false; updateTTSBtn(); };
-            
-            speechSynth.speak(speechUtterance);
-            isSpeaking = true;
-            updateTTSBtn();
-            showToast("গল্প পড়া শুরু হয়েছে 🔊", "success");
-        }
-
-        function stopTTS() {
-            if(speechSynth.speaking) {
-                speechSynth.cancel();
-            }
-            isSpeaking = false;
-            updateTTSBtn();
-        }
-
-        function updateTTSBtn() {
-            document.getElementById('tts-btn').innerText = isSpeaking ? "🔇" : "🔊";
-        }
-
-        function toggleSepiaMode() {
-            const container = document.getElementById('reading-container');
-            const header = document.getElementById('reading-header');
-            container.classList.toggle('sepia-mode');
-            header.classList.toggle('sepia-mode');
-        }
-
-        function toggleFontFamily() {
-            const content = document.getElementById('read-content');
-            if(content.classList.contains('font-sans-mode')) {
-                content.classList.remove('font-sans-mode');
-                content.classList.add('font-serif-mode');
-                showToast("ফন্ট: Serif", "info");
-            } else {
-                content.classList.remove('font-serif-mode');
-                content.classList.add('font-sans-mode');
-                showToast("ফন্ট: Sans-serif", "info");
-            }
-        }
-
-        function showToast(msg, type='info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast-msg';
-            toast.innerText = msg;
-            if(type === 'error') toast.style.borderLeft = '4px solid red';
-            else if(type === 'success') toast.style.borderLeft = '4px solid green';
-            
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        function startHeartbeat(uid) {
-            if(heartbeatInterval) clearInterval(heartbeatInterval);
-            heartbeatInterval = setInterval(() => {
-                db.collection('users').doc(uid).update({
-                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                }).catch(e => console.error(e));
-            }, 60000);
-        }
-        function stopHeartbeat() {
-            if(heartbeatInterval) clearInterval(heartbeatInterval);
-        }
-
-        async function renderAdminAnalytics() {
-            const now = new Date();
-            const fiveMinsAgo = new Date(now.getTime() - 5*60000);
-            
-            const usersSnap = await db.collection('users').get();
-            document.getElementById('stat-total-users').innerText = usersSnap.size;
-            
-            const activeCount = usersSnap.docs.filter(d => {
-                const data = d.data();
-                return data.lastActive && data.lastActive.toDate() > fiveMinsAgo;
-            }).length;
-            document.getElementById('stat-active-users').innerText = activeCount;
-        }
-
-        async function loadAllComments() {
-            const list = document.getElementById('admin-global-comments');
-            list.innerHTML = 'Loading...';
-            try {
-                const snap = await db.collectionGroup('comments').orderBy('createdAt', 'desc').limit(20).get();
-                list.innerHTML = snap.docs.map(d => {
-                    const data = d.data();
-                    return `<div class="bg-gray-100 p-2 rounded text-xs flex justify-between">
-                        <span>${data.text} - <b>${data.userName}</b></span>
-                        <button onclick="deleteComment('${d.ref.path}')" class="text-red-600">Del</button>
-                    </div>`;
-                }).join('');
-            } catch(e) {
-                list.innerHTML = "Error (Index Needed?): " + e.message;
-            }
-        }
-        
-        async function deleteComment(path) {
-            if(confirm('Delete?')) {
-                const parts = path.split('/');
-                await db.collection(parts[0]).doc(parts[1]).collection(parts[2]).doc(parts[3]).delete();
-                loadAllComments();
-            }
-        }
-
-        async function loadAllUsers() {
-             const list = document.getElementById('admin-user-list');
-             list.innerHTML = 'Loading...';
-             const snap = await db.collection('users').orderBy('createdAt', 'desc').limit(20).get();
-             list.innerHTML = snap.docs.map(d => {
-                 const u = d.data();
-                 return `<div class="bg-gray-100 p-2 rounded text-xs flex justify-between items-center">
-                    <span>${u.email} <br> <span class="text-[10px] text-gray-500">${u.uid}</span></span>
-                    <button onclick="toggleBan('${u.uid}', ${u.isBanned})" class="${u.isBanned ? 'bg-red-600 text-white' : 'bg-gray-300'} px-2 py-1 rounded">
-                        ${u.isBanned ? 'Unban' : 'Ban'}
-                    </button>
-                 </div>`;
-             }).join('');
-        }
-
-        async function toggleBan(uid, currentStatus) {
-            if(confirm(currentStatus ? "Unban user?" : "Ban user?")) {
-                await db.collection('users').doc(uid).update({ isBanned: !currentStatus });
-                loadAllUsers();
-            }
-        }
-
-        // --- UPDATED SHARE FUNCTION FOR YOUR BOT ---
         function shareStory() {
-            // আপনার স্ক্রিনশট অনুযায়ী ইউজারনেম
-            const botUsername = "Bangalchotigolpo_bot"; 
-            
-            // NOTE: BotFather-এ /newapp দিয়ে যে শর্ট নেম (Short Name) দেবেন, সেটি এখানে বসাবেন। 
-            // আমি আপাতত 'bcg' ধরলাম।
-            const appShortName = "bcg"; 
-
-            // টেলিগ্রামের জন্য স্পেশাল লিংক
-            const tgLink = `https://t.me/${botUsername}/${appShortName}?startapp=${currentStoryId}`;
-            
-            const text = `🔥 গল্প: "${document.getElementById('read-title').innerText}"\nপড়তে ক্লিক করুন: ${tgLink}`;
-
-            const tg = window.Telegram.WebApp;
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(tgLink)}&text=${encodeURIComponent(text)}`);
-            } else {
-                if (navigator.share) navigator.share({title: 'গল্প', text: text, url: tgLink}).catch(() => {});
-                else { navigator.clipboard.writeText(text); alert("লিংক কপি হয়েছে!"); }
-            }
+            const text = `🔥 গল্প: "${document.getElementById('read-title').innerText}"\nপড়তে ক্লিক করুন: ${window.location.href}`;
+            if (navigator.share) navigator.share({title: 'গল্প', text}).catch(() => {});
+            else { navigator.clipboard.writeText(text); alert("লিংক কপি হয়েছে!"); }
         }
 
         async function updateSettings() {
@@ -914,7 +578,6 @@
             if(!id) data.views = 0;
             id ? await db.collection('stories').doc(id).update(data) : await db.collection('stories').add(data);
             resetForm(); alert("সফল!");
-            showToast("গল্প পাবলিশ হয়েছে!", "success");
         };
 
         function resetForm() { document.getElementById('story-form').reset(); document.getElementById('edit-id').value = ""; document.getElementById('form-mode-title').innerText = "গল্প লিখুন"; }
@@ -973,14 +636,13 @@
             const input = document.getElementById('comment-input');
             const text = input.value.trim();
             if (!text) return;
-            if (!currentUser) { showToast("কমেন্ট করতে লগইন করুন", "error"); document.getElementById('auth-modal').classList.remove('hidden'); return; }
+            if (!currentUser) { alert("কমেন্ট করতে লগইন করুন"); document.getElementById('auth-modal').classList.remove('hidden'); return; }
             try {
                 await db.collection('stories').doc(currentStoryId).collection('comments').add({
                     text: text, uid: currentUser.uid, userName: currentUser.email.split('@')[0],
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 input.value = "";
-                showToast("মন্তব্য পোস্ট করা হয়েছে", "success");
             } catch (err) { alert("ভুল হয়েছে: " + err.message); }
         }
     </script>
