@@ -178,8 +178,11 @@
     <!-- Reading Screen -->
     <div id="reading-screen" class="hidden min-h-screen bg-white pb-20">
         <div class="sticky top-0 bg-white/95 backdrop-blur border-b p-2 flex justify-between items-center z-10 shadow-sm">
-            <!-- UI Back Button calling simple back logic (NO AD) -->
-            <button onclick="handleGoBack()" class="bg-blue-600 text-white font-bold px-4 py-2 flex items-center gap-1 hover:bg-blue-700 rounded-full shadow text-sm">← ফিরে যান</button>
+            <!-- UI Back Button: Calls Simple Close Function (NO AD) -->
+            <button onclick="closeReadingScreen()" class="text-blue-600 font-bold px-2 py-1 flex items-center gap-1 hover:bg-blue-50 rounded">
+                <span>←</span> ফিরে যান
+            </button>
+
             <div class="flex items-center gap-1 overflow-x-auto scrollbar-hide">
                 <button id="tts-btn" onclick="toggleTTS()" class="action-btn bg-green-100 text-green-700">🔊</button>
                 <button onclick="toggleSepia()" class="action-btn bg-yellow-100 text-yellow-700">📜</button>
@@ -239,7 +242,7 @@
             </div>
             
             <!-- Bottom Back Button -->
-            <button onclick="handleGoBack()" class="mt-8 w-full bg-gray-200 text-gray-800 py-3 rounded-xl font-bold hover:bg-gray-300">
+            <button onclick="closeReadingScreen()" class="mt-8 w-full bg-gray-200 text-gray-800 py-3 rounded-xl font-bold hover:bg-gray-300">
                 ← আগের পেজে ফিরে যান
             </button>
         </div>
@@ -348,7 +351,6 @@
         let currentFontSize = 18;
         let currentStoryId = null;
         let currentPage = 1;
-        let homeScrollPosition = 0; 
         const itemsPerPage = 10;
         let currentFilteredList = [];
         let isSignUpMode = false;
@@ -362,9 +364,9 @@
         tg.expand(); 
         
         // --- TELEGRAM BACK BUTTON HANDLER ---
-        // নেটিভ ব্যাক বাটন চাপলে handleGoBack কল হবে
+        // Native Back Button Calls Simple Logic
         tg.BackButton.onClick(function() {
-            handleGoBack();
+            closeReadingScreen();
         });
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -373,10 +375,10 @@
         });
 
         // ----------------------------------------------------
-        //  UPDATED AD LOGIC (Reward & Direct Link)
+        //  AD LOGIC & NAVIGATION (Simplified)
         // ----------------------------------------------------
 
-        // 1. Landing Page Button: Opens Direct Link from Admin Panel
+        // 1. Landing Page: Opens Admin Direct Link
         function enterAppWithDirectLink() {
             if (appSettings.adLink && appSettings.adLink.startsWith('http')) {
                 window.open(appSettings.adLink, '_blank');
@@ -384,13 +386,11 @@
             document.getElementById('landing-page').classList.add('hidden');
         }
 
-        // 2. Open Story Reward: Uses SDK (Required for openStory only)
+        // 2. Open Story: Show Reward Ad
         function showRewardAd(callback) {
             if (typeof show_10366901 === 'function') {
                 show_10366901()
-                    .then(() => {
-                        callback();
-                    })
+                    .then(() => callback())
                     .catch((e) => {
                         console.log("Ad Error or Closed:", e);
                         callback();
@@ -400,9 +400,25 @@
             }
         }
 
-        // 3. Back Button Logic: NO AD here.
-        function handleGoBack() {
-            closeReadingScreen();
+        // 3. Close Reading Screen (Simple Logic from Uploaded Code)
+        function closeReadingScreen() { 
+            stopTTS();
+            
+            // UI Toggle
+            document.getElementById('reading-screen').classList.add('hidden');
+            document.getElementById('home-screen').classList.remove('hidden');
+            
+            // Telegram Button Hide
+            tg.BackButton.hide();
+            
+            // Reset ID & URL Clean
+            currentStoryId = null; 
+            const url = new URL(window.location);
+            url.searchParams.delete('id');
+            window.history.replaceState({}, '', url);
+
+            // Cleanup Comments
+            if(commentUnsubscribe) { commentUnsubscribe(); commentUnsubscribe = null; }
         }
 
         // ----------------------------------------------------
@@ -552,8 +568,6 @@
             const s = stories.find(x => x.id === id);
             if(!s) return;
 
-            homeScrollPosition = window.scrollY;
-
             // Only place for Reward Ad (SDK)
             showRewardAd(() => {
                 currentStoryId = id;
@@ -590,29 +604,6 @@
                     checkResume(); 
                 };
             });
-        }
-
-        // Close Reading Screen - Returns to Home
-        function closeReadingScreen() {
-            stopTTS();
-            
-            // Hide Telegram Back Button
-            tg.BackButton.hide();
-
-            // Just swap visibility
-            document.getElementById('reading-screen').classList.add('hidden');
-            document.getElementById('home-screen').classList.remove('hidden');
-            
-            currentStoryId = null;
-            window.onscroll = null;
-
-            // Clean URL
-            const url = new URL(window.location);
-            url.searchParams.delete('id');
-            window.history.replaceState({}, '', url);
-
-            // Restore scroll
-            setTimeout(() => window.scrollTo(0, homeScrollPosition), 50);
         }
 
         function checkResume() { const lastId = localStorage.getItem('lastReadId'); if(lastId) document.getElementById('resume-btn').classList.remove('hidden'); }
