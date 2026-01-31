@@ -145,7 +145,7 @@
                 <ul class="text-sm text-gray-700 space-y-2 list-none">
                     <li>❤️ <span class="font-bold">প্রিয় পাঠক,</span> আমাদের অ্যাপে আপনাকে স্বাগতম!</li>
                     <li>🔞 <span class="font-bold">সতর্কতা:</span> এই অ্যাপের বিষয়বস্তু শুধুমাত্র ১৮+ বয়স্কদের জন্য।</li>
-                    <li>💰 <span class="font-bold">সাপোর্ট:</span> অ্যাপটি সম্পূর্ণ ফ্রি রাখার জন্য আমরা সামান্য কিছু অ্যাড ব্যবহার করছি। গল্প ব্যাক করার সময় একটি অ্যাড আসতে পারে।</li>
+                    <li>💰 <span class="font-bold">সাপোর্ট:</span> অ্যাপটি সম্পূর্ণ ফ্রি রাখার জন্য আমরা সামান্য কিছু অ্যাড ব্যবহার করছি। গল্প থেকে বের হওয়ার সময় একটি অ্যাড আসতে পারে।</li>
                     <li>🚀 <span class="font-bold">আপডেট:</span> নতুন গল্পের আপডেট সবার আগে পেতে আমাদের টেলিগ্রাম চ্যানেলে জয়েন করুন।</li>
                 </ul>
             </div>
@@ -178,8 +178,8 @@
     <!-- Reading Screen -->
     <div id="reading-screen" class="hidden min-h-screen bg-white pb-20">
         <div class="sticky top-0 bg-white/95 backdrop-blur border-b p-2 flex justify-between items-center z-10 shadow-sm">
-            <!-- Custom Back Button calling the Ad logic -->
-            <button onclick="handleGoBack()" class="text-blue-600 font-bold px-2 py-1 flex items-center gap-1 hover:bg-blue-50 rounded">← ব্যাক</button>
+            <!-- UI Back Button calling the Ad logic -->
+            <button onclick="handleGoBack()" class="bg-blue-600 text-white font-bold px-4 py-2 flex items-center gap-1 hover:bg-blue-700 rounded-full shadow text-sm">← ফিরে যান</button>
             <div class="flex items-center gap-1 overflow-x-auto scrollbar-hide">
                 <button id="tts-btn" onclick="toggleTTS()" class="action-btn bg-green-100 text-green-700">🔊</button>
                 <button onclick="toggleSepia()" class="action-btn bg-yellow-100 text-yellow-700">📜</button>
@@ -237,6 +237,11 @@
                 <h3 class="text-lg font-bold mb-4 text-gray-600">আরও পড়ুন</h3>
                 <div id="related-stories-list" class="grid gap-3"></div>
             </div>
+            
+            <!-- Bottom Back Button for convenience -->
+            <button onclick="handleGoBack()" class="mt-8 w-full bg-gray-200 text-gray-800 py-3 rounded-xl font-bold hover:bg-gray-300">
+                ← আগের পেজে ফিরে যান
+            </button>
         </div>
     </div>
 
@@ -342,6 +347,7 @@
         let currentFontSize = 18;
         let currentStoryId = null;
         let currentPage = 1;
+        let homeScrollPosition = 0; // To remember scroll position
         const itemsPerPage = 10;
         let currentFilteredList = [];
         let isSignUpMode = false;
@@ -353,6 +359,9 @@
         // Telegram Web App
         const tg = window.Telegram.WebApp;
         tg.expand(); 
+        
+        // Remove Default Back Button logic intentionally as requested
+        tg.BackButton.hide();
 
         document.addEventListener('DOMContentLoaded', () => {
             initApp();
@@ -360,61 +369,34 @@
         });
 
         // ----------------------------------------------------
-        //  ADVANCED BACK BUTTON LOGIC (Telegram & Browser)
+        //  UPDATED BUTTON LOGIC
         // ----------------------------------------------------
 
-        // ১. অ্যাড লোড করার র‍্যাপার ফাংশন (সেফটি সহ)
+        // ১. সেফ অ্যাড লোডার
         function showRewardedAd(callback) {
-            // যদি অ্যাড ফাংশন থাকে
             if (typeof show_10366901 === 'function') {
                 show_10366901()
                     .then(() => {
-                        // অ্যাড সফলভাবে দেখা হয়েছে
+                        // অ্যাড দেখা শেষ হলে কলব্যাক রান হবে
                         callback();
                     })
                     .catch((e) => {
-                        // অ্যাড ফেইল করলে ইউজারকে আটকে না রেখে কলব্যাক রান করা
-                        console.error("Ad Failed:", e);
+                        console.log("Ad Error or Closed:", e);
+                        // যদি কোনো কারণে অ্যাড ফেইল করে, তবুও ইউজারকে হোম পেজে পাঠাবে
                         callback();
                     });
             } else {
-                // অ্যাড লাইব্রেরি লোড না হলে সরাসরি কাজ করবে
+                // অ্যাড ব্লক করা থাকলে সরাসরি কাজ করবে
                 callback();
             }
         }
 
-        // ২. মেইন ব্যাক বাটন হ্যান্ডলার
+        // ২. এই ফাংশনটি এখন শুধুমাত্র স্ক্রিনের "← ফিরে যান" বাটন থেকে কল হবে
         function handleGoBack() {
-            // যদি ইউজার গল্প পড়া অবস্থায় থাকে
-            if (currentStoryId) {
-                // টেলিগ্রাম ব্যাক বাটন হাইড করা (যাতে ডাবল ক্লিক না হয়)
-                tg.BackButton.hide();
-                
-                // রিওয়ার্ডেড অ্যাড দেখানো
-                showRewardedAd(() => {
-                    // অ্যাড শেষ হলে হোম স্ক্রিনে ফিরে যাওয়া
-                    closeReadingScreen();
-                });
-            } else {
-                // ইউজার যদি হোম স্ক্রিনে থাকে, টেলিগ্রাম অ্যাপ ক্লোজ হবে
-                tg.close();
-            }
+            showRewardedAd(() => {
+                closeReadingScreen();
+            });
         }
-
-        // ৩. টেলিগ্রামের নেটিভ ব্যাক বাটনে ফাংশনটি যুক্ত করা
-        tg.BackButton.onClick(handleGoBack);
-
-        // ৪. ব্রাউজারের ফিজিক্যাল ব্যাক বাটন (Android Back Button) হ্যান্ডলার
-        window.addEventListener('popstate', function(event) {
-            if (currentStoryId) {
-                // ব্রাউজার ব্যাক বাটন চাপলে হিস্ট্রি পপ হয়ে যায়।
-                // আমরা আবার পুশ করে দিচ্ছি যাতে পেজ ক্লোজ না হয় এবং অ্যাড দেখাতে পারি।
-                window.history.pushState({view: 'reading'}, '', '?id=' + currentStoryId);
-                
-                // এবার আমাদের লজিক কল করি
-                handleGoBack();
-            }
-        });
 
         // ----------------------------------------------------
         //  APP LOGIC
@@ -476,7 +458,6 @@
             });
         }
 
-        // Landing Page Entrance
         function enterAppWithAd() { 
             showRewardedAd(() => { 
                 document.getElementById('landing-page').classList.add('hidden'); 
@@ -562,19 +543,17 @@
         function goToPage(p) { showRewardedAd(() => { currentPage = p; renderPaginatedList(); window.scrollTo(0,0); }); }
         function toggleFavorite(e, id) { e.stopPropagation(); let favs = JSON.parse(localStorage.getItem('favStories')) || []; favs = favs.includes(id) ? favs.filter(f => f!==id) : [...favs, id]; localStorage.setItem('favStories', JSON.stringify(favs)); applyFilters(); }
 
-        // Open Story with History Push
         function openStory(id, scrollPos = 0) {
             const s = stories.find(x => x.id === id);
             if(!s) return;
 
+            // Save current Home scroll position before opening story
+            homeScrollPosition = window.scrollY;
+
             showRewardedAd(() => {
                 currentStoryId = id;
                 
-                // URL এবং History আপডেট করা (যাতে ব্যাক বাটন কাজ করে)
-                window.history.pushState({view: 'reading'}, '', '?id='+id);
-                
-                // টেলিগ্রাম ব্যাক বাটন দেখানো
-                tg.BackButton.show();
+                // No History Push (Removed per request)
 
                 document.getElementById('read-title').innerText = s.title;
                 document.getElementById('read-meta-author').innerText = s.author;
@@ -604,21 +583,20 @@
             });
         }
 
-        // Close Reading Screen & Clean History
+        // Close Reading Screen - Returns to Home without resetting page
         function closeReadingScreen() {
             stopTTS();
-            showScreen('home-screen');
+            
+            // Just swap visibility
+            document.getElementById('reading-screen').classList.add('hidden');
+            document.getElementById('home-screen').classList.remove('hidden');
+            
             currentStoryId = null;
-            
-            // টেলিগ্রাম ব্যাক বাটন লুকানো
-            tg.BackButton.hide();
-            
-            // URL ক্লিন করা (History Pop না করে Replace করা যাতে লুপ না হয়)
-            const url = new URL(window.location);
-            url.searchParams.delete('id');
-            window.history.replaceState({}, '', url);
-            
             window.onscroll = null;
+
+            // Restore previous scroll position on Home
+            // Note: We do NOT reset 'currentPage', so user stays on same page (e.g. Page 4)
+            setTimeout(() => window.scrollTo(0, homeScrollPosition), 50);
         }
 
         function checkResume() { const lastId = localStorage.getItem('lastReadId'); if(lastId) document.getElementById('resume-btn').classList.remove('hidden'); }
