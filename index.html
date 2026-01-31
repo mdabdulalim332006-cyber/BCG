@@ -7,10 +7,8 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- TELEGRAM WEB APP SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- AD SCRIPT (Reward Ad) -->
     <script src='//libtl.com/sdk.js' data-zone='10366901' data-sdk='show_10366901'></script>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -66,7 +64,6 @@
 </head>
 <body oncontextmenu="return false;">
 
-    <!-- Landing Page -->
     <div id="landing-page" class="fixed inset-0 z-[60] flex flex-col items-center justify-center p-6 text-center text-white">
         <div class="bg-white/10 backdrop-blur-md p-10 rounded-3xl border border-white/20 shadow-2xl relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-pink-500 to-yellow-500"></div>
@@ -79,13 +76,11 @@
         </div>
     </div>
 
-    <!-- Loading -->
     <div id="loading-screen" class="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center">
         <div class="loader mb-4"></div>
         <p class="text-gray-500 animate-pulse">লোড হচ্ছে...</p>
     </div>
 
-    <!-- 18+ Verification -->
     <div id="age-gate" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-5 backdrop-blur-sm">
         <div class="bg-white p-8 rounded-2xl max-w-sm text-center shadow-2xl border-t-4 border-red-600">
             <h2 class="text-3xl font-bold text-red-600 mb-2">১৮+</h2>
@@ -95,7 +90,6 @@
         </div>
     </div>
 
-    <!-- Auth Modal -->
     <div id="auth-modal" class="hidden fixed inset-0 z-40 bg-black/70 flex items-center justify-center p-5 backdrop-blur-sm">
         <div class="bg-white p-6 rounded-2xl w-full max-w-sm relative shadow-xl">
             <h3 id="auth-title" class="text-xl font-bold mb-2 text-center text-gray-800">লগইন করুন</h3>
@@ -111,7 +105,6 @@
         </div>
     </div>
 
-    <!-- Notification Modal -->
     <div id="notif-modal" class="hidden fixed inset-0 z-40 bg-black/60 flex items-center justify-center p-5 backdrop-blur-sm" onclick="this.classList.add('hidden')">
         <div class="bg-white p-6 rounded-2xl w-full max-w-sm shadow-2xl relative" onclick="event.stopPropagation()">
             <h3 class="text-lg font-bold mb-4 flex items-center gap-2">🔔 নোটিফিকেশন</h3>
@@ -120,7 +113,6 @@
         </div>
     </div>
 
-    <!-- Home Screen -->
     <div id="home-screen">
         <header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100 px-4 py-3 flex justify-between items-center shadow-sm">
             <h1 id="app-nav-title" class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 cursor-pointer" onclick="window.location.reload()">বাংলা চটি গল্প</h1>
@@ -139,18 +131,15 @@
                 টেলিগ্রাম চ্যানেলে জয়েন করুন
             </button>
 
-            <!-- IMPORTANT NOTICE -->
             <div class="bg-red-50 border border-red-200 p-4 rounded-xl shadow-sm">
                 <h3 class="font-bold text-red-700 mb-2 flex items-center gap-2">📢 জরুরি নোটিশ</h3>
                 <ul class="text-sm text-gray-700 space-y-2 list-none">
                     <li>❤️ <span class="font-bold">প্রিয় পাঠক,</span> আমাদের অ্যাপে আপনাকে স্বাগতম!</li>
                     <li>🔞 <span class="font-bold">সতর্কতা:</span> এই অ্যাপের বিষয়বস্তু শুধুমাত্র ১৮+ বয়স্কদের জন্য।</li>
                     <li>💰 <span class="font-bold">সাপোর্ট:</span> অ্যাপটি সম্পূর্ণ ফ্রি রাখার জন্য আমরা সামান্য কিছু অ্যাড ব্যবহার করছি। গল্প থেকে বের হওয়ার সময় একটি অ্যাড আসতে পারে।</li>
-                    <li>🚀 <span class="font-bold">আপডেট:</span> নতুন গল্পের আপডেট সবার আগে পেতে আমাদের টেলিগ্রাম চ্যানেলে জয়েন করুন।</li>
                 </ul>
             </div>
 
-            <!-- Resume Reading -->
             <button id="resume-btn" onclick="resumeReading()" class="hidden w-full bg-purple-100 text-purple-700 border border-purple-200 py-3 rounded-xl font-bold flex items-center justify-center gap-2">
                 🔖 পড়া চালিয়ে যান (Resume)
             </button>
@@ -165,7 +154,6 @@
         <div id="no-data-msg" class="hidden text-center py-20 text-gray-400">
             <p class="text-4xl mb-2">😞</p>
             <p>কোনো গল্প পাওয়া যায়নি</p>
-            <p class="text-xs mt-2">ইন্টারনেট কানেকশন চেক করুন</p>
         </div>
 
         <div id="pagination-container" class="py-8 flex justify-center items-center gap-2 flex-wrap px-4 pb-20"></div>
@@ -175,10 +163,8 @@
         </button>
     </div>
 
-    <!-- Reading Screen -->
     <div id="reading-screen" class="hidden min-h-screen bg-white pb-20">
         <div class="sticky top-0 bg-white/95 backdrop-blur border-b p-2 flex justify-between items-center z-10 shadow-sm">
-            <!-- UI Back Button calling the Ad logic -->
             <button onclick="handleGoBack()" class="bg-blue-600 text-white font-bold px-4 py-2 flex items-center gap-1 hover:bg-blue-700 rounded-full shadow text-sm">← ফিরে যান</button>
             <div class="flex items-center gap-1 overflow-x-auto scrollbar-hide">
                 <button id="tts-btn" onclick="toggleTTS()" class="action-btn bg-green-100 text-green-700">🔊</button>
@@ -191,7 +177,6 @@
 
         <div class="p-5 max-w-3xl mx-auto">
             <h1 id="read-title" class="text-2xl md:text-3xl font-bold mb-3 text-gray-900 leading-snug"></h1>
-            
             <div class="flex flex-wrap justify-between items-center text-sm text-gray-500 mb-6 border-b pb-4 gap-2">
                 <div class="flex gap-2">
                     <span id="read-meta-author" class="bg-blue-50 text-blue-600 px-2 rounded"></span> 
@@ -202,7 +187,6 @@
                     <button id="read-fav-btn" onclick="toggleReadScreenFavorite()">🤍</button>
                 </div>
             </div>
-
             <div id="read-content" class="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium" style="font-size: 18px;"></div>
 
             <div class="mt-8 py-4 border-t border-b border-gray-100 text-center bg-gray-50 rounded-xl">
@@ -217,7 +201,6 @@
                 <p id="rating-msg" class="text-xs text-green-600 mt-2 hidden font-bold">রেটিং গ্রহণ করা হয়েছে! ধন্যবাদ।</p>
             </div>
 
-            <!-- Copy Link Button -->
             <div class="mt-6">
                 <button onclick="shareStory('copy')" class="w-full bg-blue-500 text-white py-3 rounded-xl font-bold shadow hover:bg-blue-600 flex items-center justify-center gap-2">
                     <span>🔗</span> বন্ধুদের সাথে শেয়ার করুন (লিংক কপি)
@@ -238,32 +221,26 @@
                 <div id="related-stories-list" class="grid gap-3"></div>
             </div>
             
-            <!-- Bottom Back Button for convenience -->
             <button onclick="handleGoBack()" class="mt-8 w-full bg-gray-200 text-gray-800 py-3 rounded-xl font-bold hover:bg-gray-300">
                 ← আগের পেজে ফিরে যান
             </button>
         </div>
     </div>
 
-    <!-- Admin Panel -->
     <div id="admin-panel" class="hidden min-h-screen bg-gray-50 pb-20">
         <div class="bg-white p-4 shadow flex justify-between items-center sticky top-0 z-20 border-b">
             <h2 class="text-xl font-bold">অ্যাডমিন প্যানেল</h2>
             <div class="flex gap-2">
-                <button onclick="showScreen('home-screen')" class="px-3 py-1 bg-gray-200 rounded text-sm">হোম</button>
+                <button onclick="handleGoBack()" class="px-3 py-1 bg-gray-200 rounded text-sm">হোম</button>
                 <button onclick="auth.signOut()" class="px-3 py-1 bg-red-100 text-red-600 rounded text-sm font-bold">লগআউট</button>
             </div>
         </div>
-
         <div class="p-4 max-w-4xl mx-auto space-y-6">
-            <!-- Stats -->
             <div class="grid grid-cols-3 gap-4 text-center">
                 <div class="bg-blue-100 p-4 rounded-xl text-blue-800"><h3 class="text-2xl font-bold" id="stat-users">0</h3><p class="text-xs">মোট ইউজার</p></div>
                 <div class="bg-green-100 p-4 rounded-xl text-green-800"><h3 class="text-2xl font-bold" id="stat-stories">0</h3><p class="text-xs">মোট গল্প</p></div>
                 <div class="bg-purple-100 p-4 rounded-xl text-purple-800"><h3 class="text-2xl font-bold" id="stat-views">0</h3><p class="text-xs">মোট ভিউ</p></div>
             </div>
-
-            <!-- Ban User -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <h3 class="font-bold border-b pb-2 mb-4">👤 ইউজার ম্যানেজমেন্ট</h3>
                 <div class="flex gap-2 mb-2">
@@ -271,16 +248,12 @@
                     <button onclick="banUserByEmail()" class="bg-red-600 text-white px-4 rounded">Ban</button>
                 </div>
             </div>
-
-            <!-- Settings -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <h3 class="font-bold border-b pb-2 mb-4">⚙️ সেটিংস</h3>
                 <input id="set-app-name" type="text" placeholder="অ্যাপের নাম" class="w-full p-2 border rounded mb-2">
                 <textarea id="set-notice" placeholder="পুশ নোটিফিকেশন মেসেজ..." class="w-full p-2 border rounded mb-2"></textarea>
                 <button onclick="updateSettings()" class="bg-gray-800 text-white px-6 py-2 rounded text-sm w-full">সেভ করুন</button>
             </div>
-
-            <!-- Categories -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <h3 class="font-bold border-b pb-2 mb-4">📂 ক্যাটাগরি</h3>
                 <div class="flex gap-2 mb-4">
@@ -289,8 +262,6 @@
                 </div>
                 <div id="admin-cat-list" class="flex flex-wrap gap-2"></div>
             </div>
-
-            <!-- Story Form -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <div class="flex justify-between mb-4 border-b pb-2">
                     <h3 id="form-mode-title" class="font-bold">📝 গল্প লিখুন</h3>
@@ -312,7 +283,6 @@
                     <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded font-bold">সাবমিট</button>
                 </form>
             </div>
-
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <h3 class="font-bold border-b pb-2 mb-4">সব গল্প</h3>
                 <div id="admin-story-list" class="space-y-2"></div>
@@ -339,7 +309,6 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // Global Variables
         let appSettings = { name: "বাংলা চটি গল্প", notice: "" };
         let categories = [...DEFAULT_CATS];
         let stories = [];
@@ -347,7 +316,7 @@
         let currentFontSize = 18;
         let currentStoryId = null;
         let currentPage = 1;
-        let homeScrollPosition = 0; // To remember scroll position
+        let homeScrollPosition = 0;
         const itemsPerPage = 10;
         let currentFilteredList = [];
         let isSignUpMode = false;
@@ -356,51 +325,73 @@
         let speechObj = null;
         let isSpeaking = false;
         
-        // Telegram Web App
         const tg = window.Telegram.WebApp;
         tg.expand(); 
+
+        // ----------------------------------------------------
+        // NAVIGATION FIX FOR TELEGRAM
+        // ----------------------------------------------------
         
-        // Remove Default Back Button logic intentionally as requested
-        tg.BackButton.hide();
+        tg.BackButton.onClick(() => {
+            handleGoBack();
+        });
+
+        window.addEventListener('popstate', (event) => {
+            // Browser/Phone physical back button support
+            if (currentStoryId || !document.getElementById('admin-panel').classList.contains('hidden')) {
+                handleGoBack();
+            }
+        });
+
+        function handleGoBack() {
+            if (currentStoryId || !document.getElementById('admin-panel').classList.contains('hidden')) {
+                showRewardedAd(() => {
+                    closeScreens();
+                });
+            }
+        }
+
+        function closeScreens() {
+            stopTTS();
+            showScreen('home-screen');
+            currentStoryId = null;
+            window.onscroll = null;
+            // Reset URL to base
+            window.history.pushState({}, '', window.location.pathname);
+            setTimeout(() => window.scrollTo(0, homeScrollPosition), 50);
+        }
+
+        function showScreen(id) {
+            ['home-screen', 'reading-screen', 'admin-panel'].forEach(s => {
+                document.getElementById(s)?.classList.add('hidden');
+            });
+            document.getElementById(id)?.classList.remove('hidden');
+            window.scrollTo(0,0);
+
+            // Control Telegram Back Button
+            if (id === 'home-screen') {
+                tg.BackButton.hide();
+            } else {
+                tg.BackButton.show();
+            }
+        }
+
+        function showRewardedAd(callback) {
+            if (typeof show_10366901 === 'function') {
+                show_10366901().then(() => callback()).catch(() => callback());
+            } else {
+                callback();
+            }
+        }
+
+        // ----------------------------------------------------
+        // CORE APP LOGIC (UNCHANGED)
+        // ----------------------------------------------------
 
         document.addEventListener('DOMContentLoaded', () => {
             initApp();
             checkResume();
         });
-
-        // ----------------------------------------------------
-        //  UPDATED BUTTON LOGIC
-        // ----------------------------------------------------
-
-        // ১. সেফ অ্যাড লোডার
-        function showRewardedAd(callback) {
-            if (typeof show_10366901 === 'function') {
-                show_10366901()
-                    .then(() => {
-                        // অ্যাড দেখা শেষ হলে কলব্যাক রান হবে
-                        callback();
-                    })
-                    .catch((e) => {
-                        console.log("Ad Error or Closed:", e);
-                        // যদি কোনো কারণে অ্যাড ফেইল করে, তবুও ইউজারকে হোম পেজে পাঠাবে
-                        callback();
-                    });
-            } else {
-                // অ্যাড ব্লক করা থাকলে সরাসরি কাজ করবে
-                callback();
-            }
-        }
-
-        // ২. এই ফাংশনটি এখন শুধুমাত্র স্ক্রিনের "← ফিরে যান" বাটন থেকে কল হবে
-        function handleGoBack() {
-            showRewardedAd(() => {
-                closeReadingScreen();
-            });
-        }
-
-        // ----------------------------------------------------
-        //  APP LOGIC
-        // ----------------------------------------------------
 
         function initApp() {
             if(!localStorage.getItem('age_verified')) document.getElementById('age-gate').classList.remove('hidden');
@@ -446,11 +437,9 @@
                 applyFilters();
                 
                 let startId = new URLSearchParams(window.location.search).get('id');
-                // Telegram Deep Link support
                 if(tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
                     startId = tg.initDataUnsafe.start_param;
                 }
-
                 if(startId && stories.find(s => s.id === startId) && !currentStoryId) {
                     document.getElementById('landing-page').classList.add('hidden');
                     openStory(startId, 0);
@@ -464,8 +453,8 @@
             }); 
         }
 
-        async function handleAuth(e) {
-            e.preventDefault();
+        async function handleAuth(event) {
+            event.preventDefault();
             const email = document.getElementById('auth-email').value;
             const pass = document.getElementById('auth-pass').value;
             try {
@@ -490,9 +479,9 @@
 
         function renderCategoriesUI() {
             document.getElementById('category-filters').innerHTML = `
-                <button onclick="filterByCat('ALL')" class="px-5 py-1.5 bg-blue-600 text-white border rounded-full text-sm font-bold shadow-sm whitespace-nowrap">সব</button>
-                <button onclick="filterByCat('FAVORITES')" class="px-5 py-1.5 bg-white text-pink-600 border rounded-full text-sm shadow-sm whitespace-nowrap">❤️ ফেভারিট</button>
-                ${categories.map(c => `<button onclick="filterByCat('${c}')" class="px-5 py-1.5 bg-white text-gray-800 border rounded-full text-sm shadow-sm whitespace-nowrap">${c}</button>`).join('')}
+                <button onclick="filterByCat('ALL')" class="px-5 py-1.5 bg-blue-600 text-white border rounded-full text-sm font-bold shadow-sm whitespace-nowrap transition">সব</button>
+                <button onclick="filterByCat('FAVORITES')" class="px-5 py-1.5 bg-white text-pink-600 border rounded-full text-sm shadow-sm whitespace-nowrap transition">❤️ ফেভারিট</button>
+                ${categories.map(c => `<button onclick="filterByCat('${c}')" class="px-5 py-1.5 bg-white text-gray-800 border rounded-full text-sm shadow-sm whitespace-nowrap transition">${c}</button>`).join('')}
             `;
             document.getElementById('story-category-select').innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
             document.getElementById('admin-cat-list').innerHTML = categories.map(c => `<span class="bg-gray-100 border px-3 py-1 rounded text-xs flex items-center gap-2">${c} <button onclick="deleteCategory('${c}')" class="text-red-500 font-bold">×</button></span>`).join('');
@@ -512,7 +501,7 @@
         function filterByCat(cat) {
             currentPage = 1;
             document.querySelectorAll('#category-filters button').forEach(b => b.className = "px-5 py-1.5 bg-white text-gray-800 border rounded-full text-sm shadow-sm whitespace-nowrap transition");
-            event.target.className = "px-5 py-1.5 bg-blue-600 text-white border rounded-full text-sm shadow-sm font-bold whitespace-nowrap transition";
+            event.target.className = cat === 'FAVORITES' ? "px-5 py-1.5 bg-pink-600 text-white border rounded-full text-sm shadow-sm font-bold whitespace-nowrap transition" : "px-5 py-1.5 bg-blue-600 text-white border rounded-full text-sm shadow-sm font-bold whitespace-nowrap transition";
             applyFilters(cat);
         }
 
@@ -531,7 +520,7 @@
                         <span class="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full">${s.category||'অন্যান্য'}</span>
                         <div class="flex items-center gap-2"><span class="text-xs text-gray-400">★ ${s.ratingTotal ? (s.ratingTotal/s.ratingCount).toFixed(1) : '0'}</span><span class="text-xs text-gray-400">👁️ ${s.views||0}</span><button onclick="toggleFavorite(event, '${s.id}')" class="text-lg z-10">${favs.includes(s.id)?'❤️':'🤍'}</button></div>
                     </div>
-                    <h3 class="font-bold text-lg mb-1">${s.title}</h3>
+                    <h3 class="font-bold text-lg mb-1 text-black">${s.title}</h3>
                     <p class="text-gray-500 text-sm line-clamp-2">${s.summary||'পড়তে ক্লিক করুন...'}</p>
                 </div>`).join('');
             const total = Math.ceil(currentFilteredList.length/itemsPerPage);
@@ -547,14 +536,12 @@
             const s = stories.find(x => x.id === id);
             if(!s) return;
 
-            // Save current Home scroll position before opening story
             homeScrollPosition = window.scrollY;
 
             showRewardedAd(() => {
                 currentStoryId = id;
+                window.history.pushState({storyId: id}, '', '?id=' + id);
                 
-                // No History Push (Removed per request)
-
                 document.getElementById('read-title').innerText = s.title;
                 document.getElementById('read-meta-author').innerText = s.author;
                 document.getElementById('read-meta-cat').innerText = s.category;
@@ -581,22 +568,6 @@
                     checkResume(); 
                 };
             });
-        }
-
-        // Close Reading Screen - Returns to Home without resetting page
-        function closeReadingScreen() {
-            stopTTS();
-            
-            // Just swap visibility
-            document.getElementById('reading-screen').classList.add('hidden');
-            document.getElementById('home-screen').classList.remove('hidden');
-            
-            currentStoryId = null;
-            window.onscroll = null;
-
-            // Restore previous scroll position on Home
-            // Note: We do NOT reset 'currentPage', so user stays on same page (e.g. Page 4)
-            setTimeout(() => window.scrollTo(0, homeScrollPosition), 50);
         }
 
         function checkResume() { const lastId = localStorage.getItem('lastReadId'); if(lastId) document.getElementById('resume-btn').classList.remove('hidden'); }
@@ -649,7 +620,6 @@
         function editStory(id) { const s = stories.find(x => x.id === id); document.getElementById('edit-id').value = s.id; document.getElementById('story-title').value = s.title; document.getElementById('story-author').value = s.author; document.getElementById('story-category-select').value = s.category; document.getElementById('story-content').value = s.content; document.getElementById('story-summary').value = s.summary; document.getElementById('story-status').value = s.status; document.getElementById('form-mode-title').innerText = "এডিট মোড"; window.scrollTo(0, document.getElementById('admin-panel').offsetTop); }
         async function deleteStory(id) { if(confirm("মুছবেন?")) await db.collection('stories').doc(id).delete(); }
         function resetForm() { document.getElementById('story-form').reset(); document.getElementById('edit-id').value = ""; document.getElementById('form-mode-title').innerText = "গল্প লিখুন"; }
-        function showScreen(id) { ['home-screen', 'reading-screen', 'admin-panel'].forEach(s => document.getElementById(s)?.classList.add('hidden')); document.getElementById(id)?.classList.remove('hidden'); window.scrollTo(0,0); }
         function toggleReadScreenFavorite() { if(!currentStoryId) return; toggleFavorite(event, currentStoryId); const favs = JSON.parse(localStorage.getItem('favStories')) || []; document.getElementById('read-fav-btn').innerText = favs.includes(currentStoryId) ? '❤️' : '🤍'; }
     </script>
 </body>
