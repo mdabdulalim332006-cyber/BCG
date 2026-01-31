@@ -7,7 +7,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- TELEGRAM WEB APP SDK (Must needed for Mini App) -->
+    <!-- TELEGRAM WEB APP SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
     <!-- AD SCRIPT -->
@@ -145,7 +145,7 @@
                 <ul class="text-sm text-gray-700 space-y-2 list-none">
                     <li>❤️ <span class="font-bold">প্রিয় পাঠক,</span> আমাদের অ্যাপে আপনাকে স্বাগতম!</li>
                     <li>🔞 <span class="font-bold">সতর্কতা:</span> এই অ্যাপের বিষয়বস্তু শুধুমাত্র ১৮+ বয়স্কদের জন্য।</li>
-                    <li>💰 <span class="font-bold">সাপোর্ট:</span> অ্যাপটি সম্পূর্ণ ফ্রি রাখার জন্য আমরা সামান্য কিছু অ্যাড ব্যবহার করছি। গল্পে ক্লিক করার পর একটি অ্যাড আসতে পারে, অনুগ্রহ করে সেটি লোড হওয়া পর্যন্ত অপেক্ষা করুন। এটি আমাদের সার্ভার খরচ চালাতে সাহায্য করে।</li>
+                    <li>💰 <span class="font-bold">সাপোর্ট:</span> অ্যাপটি সম্পূর্ণ ফ্রি রাখার জন্য আমরা সামান্য কিছু অ্যাড ব্যবহার করছি। গল্পে ক্লিক করার পর বা ব্যাক করার সময় একটি অ্যাড আসতে পারে। এটি আমাদের সার্ভার খরচ চালাতে সাহায্য করে।</li>
                     <li>🛡️ <span class="font-bold">কপিরাইট:</span> লেখকদের কষ্টের মর্যাদা দিতে অ্যাপ থেকে লেখা কপি করা বন্ধ রাখা হয়েছে।</li>
                     <li>🚀 <span class="font-bold">আপডেট:</span> নতুন গল্পের আপডেট সবার আগে পেতে আমাদের টেলিগ্রাম চ্যানেলে জয়েন করুন।</li>
                 </ul>
@@ -180,7 +180,7 @@
     <!-- Reading Screen -->
     <div id="reading-screen" class="hidden min-h-screen bg-white pb-20">
         <div class="sticky top-0 bg-white/95 backdrop-blur border-b p-2 flex justify-between items-center z-10 shadow-sm">
-            <button onclick="closeReadingScreen()" class="text-blue-600 font-bold px-2 py-1 flex items-center gap-1 hover:bg-blue-50 rounded">← ব্যাক</button>
+            <button onclick="handleGoBack()" class="text-blue-600 font-bold px-2 py-1 flex items-center gap-1 hover:bg-blue-50 rounded">← ব্যাক</button>
             <div class="flex items-center gap-1 overflow-x-auto scrollbar-hide">
                 <button id="tts-btn" onclick="toggleTTS()" class="action-btn bg-green-100 text-green-700">🔊</button>
                 <button onclick="toggleSepia()" class="action-btn bg-yellow-100 text-yellow-700">📜</button>
@@ -218,7 +218,7 @@
                 <p id="rating-msg" class="text-xs text-green-600 mt-2 hidden font-bold">রেটিং গ্রহণ করা হয়েছে! ধন্যবাদ।</p>
             </div>
 
-            <!-- Share Button (WhatsApp removed, only Copy Link) -->
+            <!-- Copy Link Button -->
             <div class="mt-6">
                 <button onclick="shareStory('copy')" class="w-full bg-blue-500 text-white py-3 rounded-xl font-bold shadow hover:bg-blue-600 flex items-center justify-center gap-2">
                     <span>🔗</span> বন্ধুদের সাথে শেয়ার করুন (লিংক কপি)
@@ -315,8 +315,6 @@
     <script>
         const ADMIN_EMAIL = "bcg332006@gmail.com";
         const DEFAULT_CATS = ['রোমান্টিক', 'পরকীয়া', 'ইনসেস্ট', 'ভাবি', 'লেসবিয়ান', 'ফ্যান্টাসি', 'অন্যান্য', 'মা ছেলে'];
-        
-        // --- YOUR BOT INFO ---
         const BOT_USERNAME = "Bangalchotigolpo_bot";
         const SHORT_NAME = "bcg";
 
@@ -350,22 +348,39 @@
         
         // Telegram Web App
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Make it full screen
+        tg.expand(); 
 
         document.addEventListener('DOMContentLoaded', () => {
             initApp();
             checkResume();
         });
 
-        // --- BACK BUTTON FIX FOR TELEGRAM MINI APP ---
-        function handleTgBack() {
-            closeReadingScreen();
+        // --- BACK BUTTON LOGIC WITH AD ---
+        // এই ফাংশনটি কল হবে যখন ব্যাক বাটন (App/Phone) চাপা হবে
+        function handleGoBack() {
+            // যদি গল্প পড়া অবস্থায় থাকে
+            if (currentStoryId) {
+                // ১. আগে অ্যাড দেখাবে
+                showRewardedAd(() => {
+                    // ২. অ্যাড শেষ হলে হোম স্ক্রিনে যাবে
+                    closeReadingScreen();
+                });
+            } else {
+                // যদি হোমে থাকে, কিছু করার দরকার নেই বা অ্যাপ ক্লোজ হতে পারে
+            }
         }
 
+        // Telegram Native Back Button handler
+        tg.BackButton.onClick(handleGoBack);
+
+        // Browser Physical Back Button handler (popstate)
         window.addEventListener('popstate', function(event) {
+            // যদি URL-এ ID না থাকে, মানে ইউজার ব্যাকে এসেছে
             const params = new URLSearchParams(window.location.search);
-            if (!params.get('id')) {
-                closeReadingScreen();
+            if (!params.get('id') && currentStoryId) {
+                // আমরা হিস্ট্রি আবার পুশ করবো যাতে অ্যাপ বন্ধ না হয়, এবং অ্যাড দেখাবো
+                window.history.pushState({}, '', '?id=' + currentStoryId); 
+                handleGoBack();
             }
         });
 
@@ -412,7 +427,6 @@
                 localStorage.setItem('cachedStories', JSON.stringify(stories));
                 applyFilters();
                 
-                // --- TELEGRAM DEEP LINK LOGIC ---
                 let startId = new URLSearchParams(window.location.search).get('id');
                 if(tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
                     startId = tg.initDataUnsafe.start_param;
@@ -420,7 +434,7 @@
 
                 if(startId && stories.find(s => s.id === startId) && !currentStoryId) {
                     document.getElementById('landing-page').classList.add('hidden');
-                    openStory(startId, 0, false);
+                    openStory(startId, 0);
                 }
             });
         }
@@ -509,17 +523,16 @@
         function goToPage(p) { showRewardedAd(() => { currentPage = p; renderPaginatedList(); window.scrollTo(0,0); }); }
         function toggleFavorite(e, id) { e.stopPropagation(); let favs = JSON.parse(localStorage.getItem('favStories')) || []; favs = favs.includes(id) ? favs.filter(f => f!==id) : [...favs, id]; localStorage.setItem('favStories', JSON.stringify(favs)); applyFilters(); }
 
-        function openStory(id, scrollPos = 0, shouldPushState = true) {
+        function openStory(id, scrollPos = 0) {
             const s = stories.find(x => x.id === id);
             if(!s) return;
 
             showRewardedAd(() => {
                 currentStoryId = id;
-                if(shouldPushState) window.history.pushState({}, '', '?id='+id);
+                window.history.pushState({}, '', '?id='+id);
                 
                 // Show Telegram Back Button
                 tg.BackButton.show();
-                tg.BackButton.onClick(handleTgBack);
 
                 document.getElementById('read-title').innerText = s.title;
                 document.getElementById('read-meta-author').innerText = s.author;
@@ -546,8 +559,7 @@
             
             // Hide Telegram Back Button
             tg.BackButton.hide();
-            tg.BackButton.offClick(handleTgBack);
-
+            
             const url = new URL(window.location);
             url.searchParams.delete('id');
             window.history.pushState({}, '', url);
@@ -563,10 +575,8 @@
         function updateTTSBtn() { const btn = document.getElementById('tts-btn'); btn.innerText = isSpeaking ? "🔇" : "🔊"; btn.className = isSpeaking ? "action-btn bg-red-100 text-red-600" : "action-btn bg-green-100 text-green-700"; }
         function changeFontSize(type) { currentFontSize = type === 'inc' ? currentFontSize + 2 : Math.max(12, currentFontSize - 2); document.getElementById('read-content').style.fontSize = currentFontSize + 'px'; document.getElementById('read-content').style.lineHeight = (currentFontSize + 12) + 'px'; }
 
-        // --- UPDATED SHARE LOGIC ---
         function shareStory(type) {
             const botLink = `https://t.me/${BOT_USERNAME}/${SHORT_NAME}?startapp=${currentStoryId}`;
-            // Just copy for now, simplified
             navigator.clipboard.writeText(botLink).then(() => {
                 alert("লিংক কপি হয়েছে!");
             }).catch(() => {
