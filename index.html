@@ -10,7 +10,7 @@
     <!-- TELEGRAM WEB APP SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- AD SCRIPT -->
+    <!-- AD SCRIPT (Reward Ad) -->
     <script src='//libtl.com/sdk.js' data-zone='10366901' data-sdk='show_10366901'></script>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -145,11 +145,9 @@
                 <ul class="text-sm text-gray-700 space-y-2 list-none">
                     <li>❤️ <span class="font-bold">প্রিয় পাঠক,</span> আমাদের অ্যাপে আপনাকে স্বাগতম!</li>
                     <li>🔞 <span class="font-bold">সতর্কতা:</span> এই অ্যাপের বিষয়বস্তু শুধুমাত্র ১৮+ বয়স্কদের জন্য।</li>
-                    <li>💰 <span class="font-bold">সাপোর্ট:</span> অ্যাপটি সম্পূর্ণ ফ্রি রাখার জন্য আমরা সামান্য কিছু অ্যাড ব্যবহার করছি। গল্পে ক্লিক করার পর বা ব্যাক করার সময় একটি অ্যাড আসতে পারে। এটি আমাদের সার্ভার খরচ চালাতে সাহায্য করে।</li>
-                    <li>🛡️ <span class="font-bold">কপিরাইট:</span> লেখকদের কষ্টের মর্যাদা দিতে অ্যাপ থেকে লেখা কপি করা বন্ধ রাখা হয়েছে।</li>
+                    <li>💰 <span class="font-bold">সাপোর্ট:</span> অ্যাপটি সম্পূর্ণ ফ্রি রাখার জন্য আমরা সামান্য কিছু অ্যাড ব্যবহার করছি। গল্প ব্যাক করার সময় একটি অ্যাড আসতে পারে।</li>
                     <li>🚀 <span class="font-bold">আপডেট:</span> নতুন গল্পের আপডেট সবার আগে পেতে আমাদের টেলিগ্রাম চ্যানেলে জয়েন করুন।</li>
                 </ul>
-                <p class="mt-3 text-xs text-center text-gray-500 font-bold">আমাদের সাথে থাকার জন্য ধন্যবাদ!</p>
             </div>
 
             <!-- Resume Reading -->
@@ -180,6 +178,7 @@
     <!-- Reading Screen -->
     <div id="reading-screen" class="hidden min-h-screen bg-white pb-20">
         <div class="sticky top-0 bg-white/95 backdrop-blur border-b p-2 flex justify-between items-center z-10 shadow-sm">
+            <!-- Custom Back Button calling the Ad logic -->
             <button onclick="handleGoBack()" class="text-blue-600 font-bold px-2 py-1 flex items-center gap-1 hover:bg-blue-50 rounded">← ব্যাক</button>
             <div class="flex items-center gap-1 overflow-x-auto scrollbar-hide">
                 <button id="tts-btn" onclick="toggleTTS()" class="action-btn bg-green-100 text-green-700">🔊</button>
@@ -252,28 +251,31 @@
         </div>
 
         <div class="p-4 max-w-4xl mx-auto space-y-6">
+            <!-- Stats -->
             <div class="grid grid-cols-3 gap-4 text-center">
                 <div class="bg-blue-100 p-4 rounded-xl text-blue-800"><h3 class="text-2xl font-bold" id="stat-users">0</h3><p class="text-xs">মোট ইউজার</p></div>
                 <div class="bg-green-100 p-4 rounded-xl text-green-800"><h3 class="text-2xl font-bold" id="stat-stories">0</h3><p class="text-xs">মোট গল্প</p></div>
                 <div class="bg-purple-100 p-4 rounded-xl text-purple-800"><h3 class="text-2xl font-bold" id="stat-views">0</h3><p class="text-xs">মোট ভিউ</p></div>
             </div>
 
+            <!-- Ban User -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
-                <h3 class="font-bold border-b pb-2 mb-4">👤 ইউজার ম্যানেজমেন্ট & ব্যান</h3>
+                <h3 class="font-bold border-b pb-2 mb-4">👤 ইউজার ম্যানেজমেন্ট</h3>
                 <div class="flex gap-2 mb-2">
                     <input id="ban-email-input" type="text" placeholder="ইউজার ইমেইল দিন..." class="flex-1 p-2 border rounded">
                     <button onclick="banUserByEmail()" class="bg-red-600 text-white px-4 rounded">Ban</button>
                 </div>
-                <p class="text-xs text-gray-500">ব্যান করলে ইউজার আর অ্যাপে ঢুকতে পারবে না।</p>
             </div>
 
+            <!-- Settings -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
-                <h3 class="font-bold border-b pb-2 mb-4">⚙️ সেটিংস & নোটিফিকেশন</h3>
+                <h3 class="font-bold border-b pb-2 mb-4">⚙️ সেটিংস</h3>
                 <input id="set-app-name" type="text" placeholder="অ্যাপের নাম" class="w-full p-2 border rounded mb-2">
                 <textarea id="set-notice" placeholder="পুশ নোটিফিকেশন মেসেজ..." class="w-full p-2 border rounded mb-2"></textarea>
                 <button onclick="updateSettings()" class="bg-gray-800 text-white px-6 py-2 rounded text-sm w-full">সেভ করুন</button>
             </div>
 
+            <!-- Categories -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <h3 class="font-bold border-b pb-2 mb-4">📂 ক্যাটাগরি</h3>
                 <div class="flex gap-2 mb-4">
@@ -283,6 +285,7 @@
                 <div id="admin-cat-list" class="flex flex-wrap gap-2"></div>
             </div>
 
+            <!-- Story Form -->
             <div class="bg-white p-5 rounded-xl shadow-sm border">
                 <div class="flex justify-between mb-4 border-b pb-2">
                     <h3 id="form-mode-title" class="font-bold">📝 গল্প লিখুন</h3>
@@ -331,6 +334,7 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
+        // Global Variables
         let appSettings = { name: "বাংলা চটি গল্প", notice: "" };
         let categories = [...DEFAULT_CATS];
         let stories = [];
@@ -355,34 +359,66 @@
             checkResume();
         });
 
-        // --- BACK BUTTON LOGIC WITH AD ---
-        // এই ফাংশনটি কল হবে যখন ব্যাক বাটন (App/Phone) চাপা হবে
-        function handleGoBack() {
-            // যদি গল্প পড়া অবস্থায় থাকে
-            if (currentStoryId) {
-                // ১. আগে অ্যাড দেখাবে
-                showRewardedAd(() => {
-                    // ২. অ্যাড শেষ হলে হোম স্ক্রিনে যাবে
-                    closeReadingScreen();
-                });
+        // ----------------------------------------------------
+        //  ADVANCED BACK BUTTON LOGIC (Telegram & Browser)
+        // ----------------------------------------------------
+
+        // ১. অ্যাড লোড করার র‍্যাপার ফাংশন (সেফটি সহ)
+        function showRewardedAd(callback) {
+            // যদি অ্যাড ফাংশন থাকে
+            if (typeof show_10366901 === 'function') {
+                show_10366901()
+                    .then(() => {
+                        // অ্যাড সফলভাবে দেখা হয়েছে
+                        callback();
+                    })
+                    .catch((e) => {
+                        // অ্যাড ফেইল করলে ইউজারকে আটকে না রেখে কলব্যাক রান করা
+                        console.error("Ad Failed:", e);
+                        callback();
+                    });
             } else {
-                // যদি হোমে থাকে, কিছু করার দরকার নেই বা অ্যাপ ক্লোজ হতে পারে
+                // অ্যাড লাইব্রেরি লোড না হলে সরাসরি কাজ করবে
+                callback();
             }
         }
 
-        // Telegram Native Back Button handler
+        // ২. মেইন ব্যাক বাটন হ্যান্ডলার
+        function handleGoBack() {
+            // যদি ইউজার গল্প পড়া অবস্থায় থাকে
+            if (currentStoryId) {
+                // টেলিগ্রাম ব্যাক বাটন হাইড করা (যাতে ডাবল ক্লিক না হয়)
+                tg.BackButton.hide();
+                
+                // রিওয়ার্ডেড অ্যাড দেখানো
+                showRewardedAd(() => {
+                    // অ্যাড শেষ হলে হোম স্ক্রিনে ফিরে যাওয়া
+                    closeReadingScreen();
+                });
+            } else {
+                // ইউজার যদি হোম স্ক্রিনে থাকে, টেলিগ্রাম অ্যাপ ক্লোজ হবে
+                tg.close();
+            }
+        }
+
+        // ৩. টেলিগ্রামের নেটিভ ব্যাক বাটনে ফাংশনটি যুক্ত করা
         tg.BackButton.onClick(handleGoBack);
 
-        // Browser Physical Back Button handler (popstate)
+        // ৪. ব্রাউজারের ফিজিক্যাল ব্যাক বাটন (Android Back Button) হ্যান্ডলার
         window.addEventListener('popstate', function(event) {
-            // যদি URL-এ ID না থাকে, মানে ইউজার ব্যাকে এসেছে
-            const params = new URLSearchParams(window.location.search);
-            if (!params.get('id') && currentStoryId) {
-                // আমরা হিস্ট্রি আবার পুশ করবো যাতে অ্যাপ বন্ধ না হয়, এবং অ্যাড দেখাবো
-                window.history.pushState({}, '', '?id=' + currentStoryId); 
+            if (currentStoryId) {
+                // ব্রাউজার ব্যাক বাটন চাপলে হিস্ট্রি পপ হয়ে যায়।
+                // আমরা আবার পুশ করে দিচ্ছি যাতে পেজ ক্লোজ না হয় এবং অ্যাড দেখাতে পারি।
+                window.history.pushState({view: 'reading'}, '', '?id=' + currentStoryId);
+                
+                // এবার আমাদের লজিক কল করি
                 handleGoBack();
             }
         });
+
+        // ----------------------------------------------------
+        //  APP LOGIC
+        // ----------------------------------------------------
 
         function initApp() {
             if(!localStorage.getItem('age_verified')) document.getElementById('age-gate').classList.remove('hidden');
@@ -428,6 +464,7 @@
                 applyFilters();
                 
                 let startId = new URLSearchParams(window.location.search).get('id');
+                // Telegram Deep Link support
                 if(tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
                     startId = tg.initDataUnsafe.start_param;
                 }
@@ -439,10 +476,12 @@
             });
         }
 
-        function showRewardedAd(callback) {
-            if (typeof show_10366901 === 'function') { show_10366901().then(callback).catch(callback); } else { callback(); }
+        // Landing Page Entrance
+        function enterAppWithAd() { 
+            showRewardedAd(() => { 
+                document.getElementById('landing-page').classList.add('hidden'); 
+            }); 
         }
-        function enterAppWithAd() { showRewardedAd(() => { document.getElementById('landing-page').classList.add('hidden'); }); }
 
         async function handleAuth(e) {
             e.preventDefault();
@@ -523,15 +562,18 @@
         function goToPage(p) { showRewardedAd(() => { currentPage = p; renderPaginatedList(); window.scrollTo(0,0); }); }
         function toggleFavorite(e, id) { e.stopPropagation(); let favs = JSON.parse(localStorage.getItem('favStories')) || []; favs = favs.includes(id) ? favs.filter(f => f!==id) : [...favs, id]; localStorage.setItem('favStories', JSON.stringify(favs)); applyFilters(); }
 
+        // Open Story with History Push
         function openStory(id, scrollPos = 0) {
             const s = stories.find(x => x.id === id);
             if(!s) return;
 
             showRewardedAd(() => {
                 currentStoryId = id;
-                window.history.pushState({}, '', '?id='+id);
                 
-                // Show Telegram Back Button
+                // URL এবং History আপডেট করা (যাতে ব্যাক বাটন কাজ করে)
+                window.history.pushState({view: 'reading'}, '', '?id='+id);
+                
+                // টেলিগ্রাম ব্যাক বাটন দেখানো
                 tg.BackButton.show();
 
                 document.getElementById('read-title').innerText = s.title;
@@ -540,29 +582,42 @@
                 document.getElementById('read-meta-views').innerText = '👁️ ' + (s.views ? s.views + 1 : 1);
                 document.getElementById('read-content').innerText = s.content;
                 
-                if(!currentUser || currentUser.email !== ADMIN_EMAIL) { db.collection('stories').doc(id).update({ views: firebase.firestore.FieldValue.increment(1) }); }
+                if(!currentUser || currentUser.email !== ADMIN_EMAIL) { 
+                    db.collection('stories').doc(id).update({ views: firebase.firestore.FieldValue.increment(1) }); 
+                }
+                
                 const favs = JSON.parse(localStorage.getItem('favStories')) || [];
                 document.getElementById('read-fav-btn').innerText = favs.includes(id) ? '❤️' : '🤍';
+                
                 loadRelatedStories(s.category, id);
                 loadComments(id);
                 showScreen('reading-screen');
                 stopTTS();
+                
                 setTimeout(() => window.scrollTo(0, scrollPos), 100);
-                window.onscroll = () => { localStorage.setItem('lastReadId', id); localStorage.setItem('lastReadScroll', window.scrollY); checkResume(); };
+                
+                window.onscroll = () => { 
+                    localStorage.setItem('lastReadId', id); 
+                    localStorage.setItem('lastReadScroll', window.scrollY); 
+                    checkResume(); 
+                };
             });
         }
 
+        // Close Reading Screen & Clean History
         function closeReadingScreen() {
             stopTTS();
             showScreen('home-screen');
             currentStoryId = null;
             
-            // Hide Telegram Back Button
+            // টেলিগ্রাম ব্যাক বাটন লুকানো
             tg.BackButton.hide();
             
+            // URL ক্লিন করা (History Pop না করে Replace করা যাতে লুপ না হয়)
             const url = new URL(window.location);
             url.searchParams.delete('id');
-            window.history.pushState({}, '', url);
+            window.history.replaceState({}, '', url);
+            
             window.onscroll = null;
         }
 
